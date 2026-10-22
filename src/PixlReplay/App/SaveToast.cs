@@ -1,0 +1,212 @@
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.Drawing.Text;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
+namespace PixlReplay.App;
+
+/// <summary>
+/// The "clip saved" card in the top-right corner. A click-through layered window that never takes focus;
+/// it fades in, holds, and fades out. Not shown over exclusive-fullscreen games or presentations.
+/// </summary>
+public sealed class SaveToast : NativeWindow, IDisposable
+{
+    public const double FadeIn = 0.18, Hold = 2.2, FadeOut = 0.35;
+    public const double Total = FadeIn + Hold + FadeOut;
+    const int BaseWidth = 300, BaseHeight = 64, BaseMargin = 16, SlidePx = 14;
+
+    readonly System.Windows.Forms.Timer _timer = new() { Interval = 15 };
+    Bitmap? _image;
+    Point _pos;
+    float _scale = 1;
+    DateTime _shownAt;
+
+    /// <summary>Self-test hook: draw here (off-screen) instead of the top-right corner.</summary>
+    public Point? TestPosition { get; set; }
+
+    public bool ExcludedFromCapture { get; }
+
+    /// <summary>Frames presented since the last Show, and whether the last one succeeded.</summary>
+    public int Frames { get; private set; }
+    public bool LastFrameOk { get; private set; }
+
+    public SaveToast()
+    {
+        CreateHandle(new CreateParams
+        {
+            Style = unchecked((int)0x80000000),                      // WS_POPUP
+            ExStyle = 0x80000 | 0x20 | 0x80 | 0x08000000 | 0x8,     // LAYERED, TRANSPARENT, TOOLWINDOW, NOACTIVATE, TOPMOST
+        });
+        // Seen on screen only: kept out of PixlReplay's own clips and recordings, and out of streams and screenshots.
+        ExcludedFromCapture = SetWindowDisplayAffinity(Handle, 0x11); // WDA_EXCLUDEFROMCAPTURE (Windows 10 2004 and later)
+        _timer.Tick += (_, _) => Animate();
+    }
+
+    public static Point Place(Rectangle workArea, Size size, int margin) =>
+        new(workArea.Right - size.Width - margin, workArea.Top + margin);
+
+    /// <summary>Opacity 0..1 at <paramref name="t"/> seconds after showing.</summary>
+    public static double Opacity(double t)
+    {
+        if (t <= 0 || t >= Total)
+            return 0;
+        if (t < FadeIn)
+            return 1 - Math.Pow(1 - t / FadeIn, 3);
+        if (t < FadeIn + Hold)
+            return 1;
+        double k = (t - FadeIn - Hold) / FadeOut;
+        return 1 - k * k * k;
+    }
+
+    /// <summary>Shows (or restarts) the card on the monitor of the foreground window.</summary>
+    /// <param name="warning">Something did not work: an amber "!" instead of the green check.</param>
+    public void Show(string title, string subtitle, bool rtl, bool warning = false)
+    {
+        if (SHQueryUserNotificationState(out int state) == 0 && state is 3 or 4)
+            return; // exclusive-fullscreen game or presentation mode
+
+        IntPtr monitor = MonitorFromWindow(GetForegroundWindow(), 1 /* MONITOR_DEFAULTTOPRIMARY */);
+        var info = new MONITORINFO { cbSize = Marshal.SizeOf<MONITORINFO>() };
+        GetMonitorInfo(monitor, ref info);
+        _scale = GetDpiForMonitor(monitor, 0, out uint dpi, out _) == 0 ? dpi / 96f : 1f;
+
+        _image?.Dispose();
+        _image = Paint(title, subtitle, rtl, _scale, warning);
+        var work = Rectangle.FromLTRB(info.rcWork.Left, info.rcWork.Top, info.rcWork.Right, info.rcWork.Bottom);
+        _pos = TestPosition ?? Place(work, _image.Size, (int)(BaseMargin * _scale));
+        _shownAt = DateTime.UtcNow;
+        Frames = 0;
+        Animate();
+        ShowWindow(Handle, 4 /* SW_SHOWNOACTIVATE */);
+        SetWindowPos(Handle, new IntPtr(-1) /* HWND_TOPMOST */, 0, 0, 0, 0, 0x0001 | 0x0002 | 0x0010 /* NOSIZE NOMOVE NOACTIVATE */);
+        _timer.Start();
+    }
+
+    void Animate()
+    {
+        double t = (DateTime.UtcNow - _shownAt).TotalSeconds;
+        double opacity = Opacity(t);
+        if (t >= Total || _image == null)
+        {
+            _timer.Stop();
+            ShowWindow(Handle, 0 /* SW_HIDE */);
+            return;
+        }
+        int slide = t < FadeIn ? (int)((1 - opacity) * SlidePx * _scale) : 0;
+        Present(_image, new Point(_pos.X + slide, _pos.Y), (byte)Math.Round(opacity * 255));
+    }
+
+    /// <summary>Draws the card. Shared with --render-toast so it can be checked without showing a window.</summary>
+    public static Bitmap Paint(string title, string subtitle, bool rtl, float scale, bool warning = false)
+    {
+        int w = (int)(BaseWidth * scale), h = (int)(BaseHeight * scale);
+        var bmp = new Bitmap(w, h, PixelFormat.Format32bppArgb);
+        using var g = Graphics.FromImage(bmp);
+        g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+        g.Clear(Color.Transparent);
+
+        float r = 12 * scale;
+        using (var path = GdiShapes.Rounded(new RectangleF(0.5f, 0.5f, w - 1, h - 1), r))
+        using (var bg = new SolidBrush(Color.FromArgb(245, 58, 49, 48)))
+        using (var border = new Pen(Color.FromArgb(255, 98, 84, 83), 1))
+        {
+            g.FillPath(bg, path);
+            g.DrawPath(border, path);
+        }
+
+        float pad = 16 * scale, icon = 30 * scale;
+        float iconX = rtl ? w - pad - icon : pad;
+        float iconY = (h - icon) / 2;
+        using (var disc = new SolidBrush(warning ? Color.FromArgb(255, 255, 176, 32) : Color.FromArgb(255, 46, 212, 122)))
+            g.FillEllipse(disc, iconX, iconY, icon, icon);
+        using (var mark = new Pen(Color.FromArgb(255, 46, 39, 38), 2.6f * scale) { StartCap = LineCap.Round, EndCap = LineCap.Round, LineJoin = LineJoin.Round })
+        {
+            if (warning)
+            {
+                // "!": a stroke and a dot
+                g.DrawLine(mark, iconX + icon * 0.5f, iconY + icon * 0.26f, iconX + icon * 0.5f, iconY + icon * 0.56f);
+                g.DrawLine(mark, iconX + icon * 0.5f, iconY + icon * 0.74f, iconX + icon * 0.5f, iconY + icon * 0.745f);
+            }
+            else
+            {
+                g.DrawLines(mark,
+                [
+                    new PointF(iconX + icon * 0.28f, iconY + icon * 0.52f),
+                    new PointF(iconX + icon * 0.44f, iconY + icon * 0.67f),
+                    new PointF(iconX + icon * 0.73f, iconY + icon * 0.36f),
+                ]);
+            }
+        }
+
+        float textLeft = rtl ? pad : pad + icon + 12 * scale;
+        float textWidth = w - pad * 2 - icon - 12 * scale;
+        var format = new StringFormat(rtl ? StringFormatFlags.DirectionRightToLeft : 0)
+        {
+            Trimming = StringTrimming.EllipsisCharacter,
+            FormatFlags = (rtl ? StringFormatFlags.DirectionRightToLeft : 0) | StringFormatFlags.NoWrap,
+        };
+        using var titleFont = new Font("Segoe UI Semibold", 10.5f * scale, FontStyle.Regular, GraphicsUnit.Point);
+        using var subFont = new Font("Segoe UI", 9f * scale, FontStyle.Regular, GraphicsUnit.Point);
+        using var white = new SolidBrush(Color.FromArgb(255, 245, 236, 234));
+        using var grey = new SolidBrush(Color.FromArgb(255, 187, 170, 167));
+        g.DrawString(title, titleFont, white, new RectangleF(textLeft, 12 * scale, textWidth, 22 * scale), format);
+        g.DrawString(subtitle, subFont, grey, new RectangleF(textLeft, 34 * scale, textWidth, 20 * scale), format);
+        return bmp;
+    }
+
+    void Present(Bitmap image, Point pos, byte alpha)
+    {
+        IntPtr screen = GetDC(IntPtr.Zero);
+        IntPtr mem = CreateCompatibleDC(screen);
+        IntPtr hbmp = image.GetHbitmap(Color.FromArgb(0));
+        IntPtr old = SelectObject(mem, hbmp);
+        try
+        {
+            var size = new SIZE { cx = image.Width, cy = image.Height };
+            var src = new POINT();
+            var dst = new POINT { x = pos.X, y = pos.Y };
+            var blend = new BLENDFUNCTION { BlendOp = 0, BlendFlags = 0, SourceConstantAlpha = alpha, AlphaFormat = 1 };
+            LastFrameOk = UpdateLayeredWindow(Handle, screen, ref dst, ref size, mem, ref src, 0, ref blend, 2 /* ULW_ALPHA */);
+            Frames++;
+        }
+        finally
+        {
+            SelectObject(mem, old);
+            DeleteObject(hbmp);
+            DeleteDC(mem);
+            ReleaseDC(IntPtr.Zero, screen);
+        }
+    }
+
+    public void Dispose()
+    {
+        _timer.Dispose();
+        _image?.Dispose();
+        DestroyHandle();
+    }
+
+    [StructLayout(LayoutKind.Sequential)] struct POINT { public int x, y; }
+    [StructLayout(LayoutKind.Sequential)] struct SIZE { public int cx, cy; }
+    [StructLayout(LayoutKind.Sequential)] struct RECT { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential)] struct MONITORINFO { public int cbSize; public RECT rcMonitor; public RECT rcWork; public uint dwFlags; }
+    [StructLayout(LayoutKind.Sequential, Pack = 1)] struct BLENDFUNCTION { public byte BlendOp, BlendFlags, SourceConstantAlpha, AlphaFormat; }
+
+    [DllImport("user32.dll")] static extern bool UpdateLayeredWindow(IntPtr hwnd, IntPtr hdcDst, ref POINT pptDst, ref SIZE psize, IntPtr hdcSrc, ref POINT pptSrc, int crKey, ref BLENDFUNCTION pblend, int dwFlags);
+    [DllImport("user32.dll")] static extern IntPtr GetDC(IntPtr hwnd);
+    [DllImport("user32.dll")] static extern bool SetWindowDisplayAffinity(IntPtr hwnd, uint affinity);
+    [DllImport("user32.dll")] static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
+    [DllImport("gdi32.dll")] static extern IntPtr CreateCompatibleDC(IntPtr hdc);
+    [DllImport("gdi32.dll")] static extern bool DeleteDC(IntPtr hdc);
+    [DllImport("gdi32.dll")] static extern IntPtr SelectObject(IntPtr hdc, IntPtr obj);
+    [DllImport("gdi32.dll")] static extern bool DeleteObject(IntPtr obj);
+    [DllImport("user32.dll")] static extern bool ShowWindow(IntPtr hwnd, int cmd);
+    [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
+    [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint flags);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern bool GetMonitorInfo(IntPtr monitor, ref MONITORINFO info);
+    [DllImport("shcore.dll")] static extern int GetDpiForMonitor(IntPtr monitor, int type, out uint dpiX, out uint dpiY);
+    [DllImport("shell32.dll")] static extern int SHQueryUserNotificationState(out int state);
+}

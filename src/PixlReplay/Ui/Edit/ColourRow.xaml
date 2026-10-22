@@ -1,0 +1,92 @@
+<UserControl x:Class="PixlReplay.Ui.Edit.ColourRow" x:Name="Root"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:PixlReplay.Ui"
+             xmlns:e="clr-namespace:PixlReplay.Ui.Edit">
+    <UserControl.Resources>
+        <!-- One colour of the palette: a dot, ringed when chosen (its own style, not the theme's wide radio button) -->
+        <Style x:Key="SwatchDot" TargetType="RadioButton">
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Margin" Value="0,0,3,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource KeyFocusRound}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid Background="Transparent">
+                            <Ellipse x:Name="Ring" Stroke="{DynamicResource Accent}" StrokeThickness="2" Visibility="Hidden"/>
+                            <Ellipse Margin="4" Fill="{Binding Brush}" Stroke="{StaticResource ControlStroke}" StrokeThickness="1"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <DataTemplate x:Key="SwatchTemplate">
+            <RadioButton Style="{StaticResource SwatchDot}" IsChecked="{Binding IsSelected, Mode=TwoWay}" GroupName="{Binding GroupName, ElementName=Root}"
+                         ToolTip="{Binding Hex}" AutomationProperties.Name="{Binding Hex}"/>
+        </DataTemplate>
+        <!-- Any other colour: a rainbow dot that opens the picker, and shows the colour chosen there -->
+        <Style x:Key="CustomDot" TargetType="RadioButton">
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource KeyFocusRound}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid Background="Transparent">
+                            <Ellipse x:Name="Ring" Stroke="{DynamicResource Accent}" StrokeThickness="2" Visibility="Hidden"/>
+                            <Ellipse Margin="4" Stroke="{StaticResource ControlStroke}" StrokeThickness="1">
+                                <Ellipse.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#FF5A5A" Offset="0"/>
+                                        <GradientStop Color="#FFD54A" Offset="0.3"/>
+                                        <GradientStop Color="#3DDC84" Offset="0.55"/>
+                                        <GradientStop Color="#4FC3F7" Offset="0.8"/>
+                                        <GradientStop Color="#C58BF4" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+                            <Ellipse x:Name="Chosen" Margin="8" Fill="{Binding CustomBrush, ElementName=Root}" Visibility="Hidden"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="Chosen" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <StackPanel Orientation="Horizontal">
+        <ItemsControl ItemsSource="{Binding Swatches, ElementName=Root}" ItemTemplate="{StaticResource SwatchTemplate}" Focusable="False">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+        </ItemsControl>
+        <RadioButton x:Name="Custom" Style="{StaticResource CustomDot}" GroupName="{Binding GroupName, ElementName=Root}" Click="OnCustom"
+                     ToolTip="{l:T editor.colour.custom}" AutomationProperties.Name="{l:T editor.colour.custom}"/>
+        <Popup x:Name="PickerPopup" PlacementTarget="{Binding ElementName=Custom}" Placement="Bottom" StaysOpen="False" AllowsTransparency="True"
+               PopupAnimation="Fade" HorizontalOffset="-200" VerticalOffset="6">
+            <Border Background="{DynamicResource FlyoutBackground}" BorderBrush="{DynamicResource FlyoutBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12">
+                <e:ColourPicker Colour="{Binding Colour, ElementName=Root, Mode=TwoWay}"/>
+            </Border>
+        </Popup>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <!-- Without dynamic PGO the runtime compiles each hot method once, not twice (instrumented, then optimized): measured,
+         the settings window used a third less CPU in its first minute, with heavy saves as fast. -->
+    <TieredPGO>false</TieredPGO>
+    <!-- Builds name the repository "/_/" instead of the folder on the build machine. -->
+    <PathMap>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..'))=/_/</PathMap>
+    <AssemblyName>PixlReplay</AssemblyName>
+    <RootNamespace>PixlReplay</RootNamespace>
+    <Version>1.0.1</Version>
+    <Product>PixlReplay</Product>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <!-- Library IntelliSense files (WebView2 ships ~0.8 MB of them) are for developers, not users. -->
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+    <Using Include="System.IO" />
+    <InternalsVisibleTo Include="PixlReplay.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Smart Save: openWakeWord feature models (Apache-2.0) and Silero VAD (MIT), loaded from the program folder's models\ -->
+    <Content Include="Models\*.onnx" Link="models\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Platform marks on the share panel's tiles (supplied by the project owner) and the caption picker's emoji -->
+    <Resource Include="Ui\Assets\**\*.png" />
+    <EmbeddedResource Include="App\Lang\*.json" LogicalName="Lang.%(Filename).json" />
+    <!-- The text tool's fonts (SIL Open Font License), loaded from the program folder's fonts\ -->
+    <Content Include="Ui\Assets\Fonts\*.ttf" Link="fonts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FFmpeg.AutoGen" Version="8.1.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.30.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+    <PackageReference Include="Velopack" Version="1.2.161" />
+  </ItemGroup>
+
+</Project>

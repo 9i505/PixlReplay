@@ -1,0 +1,369 @@
+<UserControl x:Class="PixlReplay.Ui.Pages.StatusPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:PixlReplay.Ui">
+    <UserControl.Resources>
+        <!-- The button's hotkey, small inside it (the user's own keys; hidden when there is none) -->
+        <Style x:Key="KeyChip" TargetType="Border">
+            <Setter Property="Margin" Value="8,1,0,0"/>
+            <Setter Property="Padding" Value="3,0,3,0"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="BorderThickness" Value="0.8"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Opacity" Value="0.6"/>
+            <Setter Property="FlowDirection" Value="LeftToRight"/>
+            <Setter Property="BorderBrush" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+        </Style>
+        <!-- A slim line when something needs attention: a small icon, one sentence, at most one button -->
+        <Style x:Key="Notice" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Surface}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Stroke}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="MinHeight" Value="40"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+        </Style>
+        <Style x:Key="NoticeIcon" TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+            <Setter Property="Text" Value="&#xE7BA;"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource Warning}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+        </Style>
+        <Style x:Key="NoticeText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,3"/>
+        </Style>
+    </UserControl.Resources>
+    <StackPanel>
+        <TextBlock Style="{StaticResource Title}" Text="{l:T nav.status}"/>
+
+        <!-- Only when something needs attention -->
+        <Border Style="{StaticResource Notice}" Visibility="{Binding FolderWarning, Converter={StaticResource Vis}}">
+            <DockPanel>
+                <TextBlock Style="{StaticResource NoticeIcon}" DockPanel.Dock="Left"/>
+                <TextBlock Style="{StaticResource NoticeText}" Text="{Binding FolderWarning}"/>
+            </DockPanel>
+        </Border>
+
+        <!-- State -->
+        <Border Style="{StaticResource Card}" Padding="22,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid Width="48" Height="48" VerticalAlignment="Center">
+                    <Ellipse>
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="{StaticResource IdleSoft}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding State}" Value="active"><Setter Property="Fill" Value="{DynamicResource AccentSoft}"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding State}" Value="error"><Setter Property="Fill" Value="{StaticResource WarningSoft}"/></DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <Ellipse Width="16" Height="16">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="{StaticResource Idle}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding State}" Value="active"><Setter Property="Fill" Value="{DynamicResource Accent}"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding State}" Value="error"><Setter Property="Fill" Value="{StaticResource Warning}"/></DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                </Grid>
+                <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding StateTitle}" FontSize="19" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding StateDetail}" Style="{StaticResource Caption}" FontSize="13"
+                               Visibility="{Binding StateDetail, Converter={StaticResource Vis}}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Instant replay's own pause, next to its Save clip -->
+                    <Button Style="{StaticResource Ghost}" Command="{Binding PauseCommand}" Padding="11,9" Margin="0,0,10,0" VerticalAlignment="Center"
+                            ToolTip="{Binding ReplayPauseTip}" AutomationProperties.Name="{Binding ReplayPauseTip}"
+                            Visibility="{Binding ReplayPauseVisible, Converter={StaticResource Vis}}">
+                        <TextBlock FontSize="14">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+                                    <Setter Property="Text" Value="&#xE769;"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding State}" Value="paused"><Setter Property="Text" Value="&#xE768;"/></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Button>
+                    <Button Style="{StaticResource Ghost}" Command="{Binding SaveNowCommand}" VerticalAlignment="Center"
+                            Visibility="{Binding SaveVisible, Converter={StaticResource Vis}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE74E;" Margin="0,0,8,0" FontSize="13" Foreground="{DynamicResource Accent}"/>
+                            <TextBlock Text="{l:T status.saveNow}"/>
+                            <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkSave, Converter={StaticResource Vis}}">
+                                <TextBlock Text="{Binding HkSave}" FontSize="9.5"/>
+                            </Border>
+                            <!-- Another app holds the save key: said here too, not only on the Hotkeys page -->
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                                       VerticalAlignment="Center" ToolTip="{Binding SaveKey.TakenText}" AutomationProperties.Name="{Binding SaveKey.TakenText}"
+                                       Visibility="{Binding SaveKey.Taken, Converter={StaticResource Vis}}"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Primary}" Command="{Binding StartEngineCommand}" VerticalAlignment="Center"
+                            Content="{l:T status.start}" Visibility="{Binding EngineOnline, Converter={StaticResource Vis}, ConverterParameter=invert}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <StackPanel Visibility="{Binding EngineOnline, Converter={StaticResource Vis}}">
+            <!-- Metrics -->
+            <UniformGrid Columns="3" Margin="-6,0,-6,6">
+                <Border Style="{StaticResource Card}" Margin="6,0,6,6">
+                    <StackPanel>
+                        <TextBlock Text="{l:T status.buffer}" Style="{StaticResource Caption}" Margin="0"/>
+                        <TextBlock Style="{StaticResource Value}" Text="{Binding BufferText}" Margin="0,6,0,8"/>
+                        <ProgressBar Height="4" Minimum="0" Maximum="1" Value="{Binding BufferProgress, Mode=OneWay}"
+                                     Foreground="{DynamicResource Accent}" Background="{StaticResource Stroke}" BorderThickness="0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="6,0,6,6">
+                    <StackPanel>
+                        <TextBlock Text="{l:T status.memory}" Style="{StaticResource Caption}" Margin="0"/>
+                        <TextBlock Style="{StaticResource Value}" Text="{Binding MemoryText}" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="6,0,6,6" ToolTip="{Binding EncoderText}">
+                    <StackPanel>
+                        <TextBlock Text="{l:T status.quality}" Style="{StaticResource Caption}" Margin="0"/>
+                        <TextBlock Style="{StaticResource Value}" Text="{Binding QualityText}" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Recording: started here; while it runs, stop and pause sit side by side -->
+            <Border Style="{StaticResource Card}" Padding="22,18">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Width="48" Height="48" VerticalAlignment="Center">
+                        <Ellipse>
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="{StaticResource IdleSoft}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RecordState}" Value="recording"><Setter Property="Fill" Value="{DynamicResource AccentSoft}"/></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <TextBlock FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+                                    <Setter Property="Text" Value="&#xE714;"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RecordState}" Value="recording"><Setter Property="Visibility" Value="Collapsed"/></DataTrigger>
+                                        <DataTrigger Binding="{Binding RecordState}" Value="paused"><Setter Property="Text" Value="&#xE769;"/></DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Ellipse Width="16" Height="16" Fill="{DynamicResource Accent}" Visibility="{Binding IsRecordingLive, Converter={StaticResource Vis}}"/>
+                    </Grid>
+                    <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding RecordTitle}" FontSize="17" FontWeight="SemiBold"/>
+                        <TextBlock Text="{Binding RecordDetail}" Style="{StaticResource Caption}" FontSize="13"
+                                   Visibility="{Binding RecordDetail, Converter={StaticResource Vis}}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource Primary}" Command="{Binding RecordCommand}"
+                                Visibility="{Binding StartPrimaryVisible, Converter={StaticResource Vis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7C8;" FontSize="14" Margin="0,0,8,0"/>
+                                <TextBlock Text="{l:T status.record}"/>
+                                <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkRecord, Converter={StaticResource Vis}}">
+                                    <TextBlock Text="{Binding HkRecord}" FontSize="9.5"/>
+                                </Border>
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                                           VerticalAlignment="Center" ToolTip="{Binding RecordKey.TakenText}" AutomationProperties.Name="{Binding RecordKey.TakenText}"
+                                           Visibility="{Binding RecordKey.Taken, Converter={StaticResource Vis}}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource Ghost}" Command="{Binding RecordCommand}"
+                                Visibility="{Binding StartGhostVisible, Converter={StaticResource Vis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7C8;" FontSize="13" Margin="0,0,8,0" Foreground="{DynamicResource Accent}"/>
+                                <TextBlock Text="{l:T status.record}"/>
+                                <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkRecord, Converter={StaticResource Vis}}">
+                                    <TextBlock Text="{Binding HkRecord}" FontSize="9.5"/>
+                                </Border>
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                                           VerticalAlignment="Center" ToolTip="{Binding RecordKey.TakenText}" AutomationProperties.Name="{Binding RecordKey.TakenText}"
+                                           Visibility="{Binding RecordKey.Taken, Converter={StaticResource Vis}}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource Ghost}" Command="{Binding RecordCommand}"
+                                Visibility="{Binding IsRecording, Converter={StaticResource Vis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE71A;" FontSize="13" Margin="0,0,8,0"/>
+                                <TextBlock Text="{l:T status.stopRecord}"/>
+                                <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkRecord, Converter={StaticResource Vis}}">
+                                    <TextBlock Text="{Binding HkRecord}" FontSize="9.5"/>
+                                </Border>
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                                           VerticalAlignment="Center" ToolTip="{Binding RecordKey.TakenText}" AutomationProperties.Name="{Binding RecordKey.TakenText}"
+                                           Visibility="{Binding RecordKey.Taken, Converter={StaticResource Vis}}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource Ghost}" Command="{Binding PauseRecordCommand}" Margin="10,0,0,0"
+                                Visibility="{Binding IsRecording, Converter={StaticResource Vis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontSize="13" Margin="0,0,8,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+                                            <Setter Property="Text" Value="&#xE769;"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RecordState}" Value="paused"><Setter Property="Text" Value="&#xE768;"/></DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text="{Binding RecordPauseLabel}"/>
+                                <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkPauseRecord, Converter={StaticResource Vis}}">
+                                    <TextBlock Text="{Binding HkPauseRecord}" FontSize="9.5"/>
+                                </Border>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Screenshot: what is being captured, as a picture beside the clips -->
+            <Border Style="{StaticResource Card}" Padding="22,14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Width="48" Height="48" VerticalAlignment="Center">
+                        <Ellipse Fill="{StaticResource IdleSoft}"/>
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE722;" FontSize="18" Foreground="{StaticResource TextSecondary}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
+                        <TextBlock Text="{l:T status.shotTitle}" FontSize="17" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Style="{StaticResource Ghost}" Command="{Binding ScreenshotCommand}" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE722;" FontSize="13" Margin="0,0,8,0" Foreground="{DynamicResource Accent}"/>
+                            <TextBlock Text="{l:T status.shot}"/>
+                            <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkScreenshot, Converter={StaticResource Vis}}">
+                                <TextBlock Text="{Binding HkScreenshot}" FontSize="9.5"/>
+                            </Border>
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                                       VerticalAlignment="Center" ToolTip="{Binding ScreenshotKey.TakenText}" AutomationProperties.Name="{Binding ScreenshotKey.TakenText}"
+                                       Visibility="{Binding ScreenshotKey.Taken, Converter={StaticResource Vis}}"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- One-time introduction to Smart Save -->
+            <Border Style="{StaticResource Card}" Visibility="{Binding ShowVoiceHint, Converter={StaticResource Vis}}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE720;" FontSize="20" Foreground="{DynamicResource Accent}" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="1" Margin="14,0" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource Section}" Text="{l:T voice.hint}"/>
+                        <TextBlock Style="{StaticResource Caption}" Text="{l:T voice.hintTip}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <Button Grid.Column="2" Style="{StaticResource Primary}" Content="{l:T voice.setUp}" Command="{Binding VoiceSetUpCommand}" VerticalAlignment="Center"/>
+                    <Button Grid.Column="3" Style="{StaticResource Ghost}" Command="{Binding VoiceDismissHintCommand}" Margin="8,0,0,0" Padding="10,9"
+                            VerticalAlignment="Center" ToolTip="{l:T voice.cancel}" AutomationProperties.Name="{l:T voice.cancel}">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE711;" FontSize="12"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- The latest clip and screenshot: play, view or share them from here -->
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardTitle}" Text="{l:T status.latest}"/>
+                    <UniformGrid Columns="2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="112" Height="63" CornerRadius="8" Background="#231D1C" ClipToBounds="True" VerticalAlignment="Top">
+                            <Grid>
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE714;" FontSize="18" Foreground="{StaticResource StrokeStrong}" HorizontalAlignment="Center"/>
+                                <Image Source="{Binding LastClipThumbnail}" Stretch="UniformToFill" FlowDirection="LeftToRight"/>
+                            </Grid>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                            <TextBlock Text="{l:T status.lastClip}" Style="{StaticResource Caption}" Margin="0"/>
+                            <TextBlock Text="{Binding LastClipName}" FontSize="13.5" TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight"
+                                       HorizontalAlignment="Left" Margin="0,1,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0" IsEnabled="{Binding HasLastClip}">
+                                <Button Style="{StaticResource Ghost}" Command="{Binding OpenLastClipCommand}" Padding="10,5" Margin="0,0,6,0">
+                                    <TextBlock Text="{l:T clips.play}" FontSize="13"/>
+                                </Button>
+                                <Button Style="{StaticResource Ghost}" Command="{Binding ShareLastClipCommand}" Padding="9,5" Margin="0,0,6,0"
+                                        ToolTip="{l:T clips.share}" AutomationProperties.Name="{l:T clips.share}">
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE72D;" FontSize="12"/>
+                                </Button>
+                                <Button Style="{StaticResource Ghost}" Command="{Binding OpenFolderCommand}" Padding="9,5"
+                                        ToolTip="{l:T status.openFolder}" AutomationProperties.Name="{l:T status.openFolder}">
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE838;" FontSize="12"/>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="112" Height="63" CornerRadius="8" Background="#231D1C" ClipToBounds="True" VerticalAlignment="Top">
+                            <Grid>
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE722;" FontSize="18" Foreground="{StaticResource StrokeStrong}" HorizontalAlignment="Center"/>
+                                <Image Source="{Binding LastShotThumbnail}" Stretch="UniformToFill" FlowDirection="LeftToRight"/>
+                            </Grid>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                            <TextBlock Text="{l:T status.lastShot}" Style="{StaticResource Caption}" Margin="0"/>
+                            <TextBlock Text="{Binding LastShotName}" FontSize="13.5" TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight"
+                                       HorizontalAlignment="Left" Margin="0,1,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0" IsEnabled="{Binding HasLastShot}">
+                                <Button Style="{StaticResource Ghost}" Command="{Binding ViewLastShotCommand}" Padding="10,5" Margin="0,0,6,0">
+                                    <TextBlock Text="{l:T clips.view}" FontSize="13"/>
+                                </Button>
+                                <Button Style="{StaticResource Ghost}" Command="{Binding ShareLastShotCommand}" Padding="9,5" Margin="0,0,6,0"
+                                        ToolTip="{l:T clips.share}" AutomationProperties.Name="{l:T clips.share}">
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE72D;" FontSize="12"/>
+                                </Button>
+                            </StackPanel>
+                        </StackPanel>
+                    </Grid>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </StackPanel>
+</UserControl>

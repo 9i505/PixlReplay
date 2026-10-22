@@ -1,0 +1,203 @@
+<Window x:Class="PixlReplay.Ui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:PixlReplay.Ui"
+        xmlns:e="clr-namespace:PixlReplay.Ui.Edit"
+        Width="1100" Height="700" MinWidth="860" MinHeight="580"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Bg}" Foreground="{StaticResource TextPrimary}"
+        FontFamily="{StaticResource UiFont}" FontSize="14"
+        UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="40" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+    <Window.Resources>
+        <Style x:Key="Caption" TargetType="Button">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent">
+                            <TextBlock Text="{TemplateBinding Content}" FontFamily="{StaticResource IconFont}" FontSize="10"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" FlowDirection="LeftToRight"
+                                       Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource StrokeStrong}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CaptionClose" TargetType="Button" BasedOn="{StaticResource Caption}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="Transparent">
+                            <TextBlock x:Name="Glyph" Text="{TemplateBinding Content}" FontFamily="{StaticResource IconFont}" FontSize="10"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" FlowDirection="LeftToRight"
+                                       Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E81123"/>
+                                <Setter TargetName="Glyph" Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#B5101C"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid x:Name="Root">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="212"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Sidebar (spans the title bar so the window reads as one surface) -->
+        <Border Grid.RowSpan="2" Background="{StaticResource NavBg}" BorderBrush="{StaticResource Stroke}" BorderThickness="0,0,1,0"/>
+        <StackPanel Orientation="Horizontal" Margin="22,0,0,0" VerticalAlignment="Center">
+            <Grid Width="22" Height="22">
+                <Ellipse Width="18" Height="18" Stroke="{DynamicResource Accent}" StrokeThickness="2.2" StrokeDashArray="6 1.4"/>
+                <Ellipse Width="6" Height="6" Fill="{DynamicResource Accent}"/>
+            </Grid>
+            <!-- The name as drawn (Kai + rose italic ros; in Arabic كاي + rose slanted روس), set for the language in code -->
+            <Image x:Name="Wordmark" Height="22" Margin="6,0,0,0" VerticalAlignment="Center" FlowDirection="LeftToRight"
+                   RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="{l:T app}"/>
+        </StackPanel>
+
+        <!-- Window buttons (above the share panel's dimmed backdrop, so the window can always be closed) -->
+        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="20">
+            <Button Style="{StaticResource Caption}" Content="&#xE921;" Click="OnMinimize" AutomationProperties.Name="Minimize"/>
+            <Button x:Name="MaxButton" Style="{StaticResource Caption}" Content="&#xE922;" Click="OnMaximize" AutomationProperties.Name="Maximize"/>
+            <Button Style="{StaticResource CaptionClose}" Content="&#xE8BB;" Click="OnClose" AutomationProperties.Name="Close"/>
+        </StackPanel>
+
+        <StackPanel x:Name="Nav" Grid.Row="1" Margin="14,10,14,16">
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE9D9;" Content="{l:T nav.status}" x:Name="NavStatus" IsChecked="True"/>
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE8B9;" Content="{l:T nav.clips}" x:Name="NavClips"/>
+            <!-- The settings, in three groups -->
+            <TextBlock Style="{StaticResource NavGroup}" Text="{l:T nav.groupRecording}"/>
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE7F4;" Content="{l:T nav.capture}" x:Name="NavCapture"/>
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="HD" Content="{l:T nav.quality}" x:Name="NavQuality"/>
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE767;" Content="{l:T nav.audio}" x:Name="NavAudio"/>
+            <TextBlock Style="{StaticResource NavGroup}" Text="{l:T nav.groupControls}"/>
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE765;" Content="{l:T nav.hotkeys}" x:Name="NavHotkeys"/>
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE720;" Content="{l:T nav.voice}" x:Name="NavVoice"/>
+            <TextBlock Style="{StaticResource NavGroup}" Text="{l:T nav.groupApp}"/>
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE71B;" Content="{l:T nav.connections}" x:Name="NavConnections"/>
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE713;" Content="{l:T nav.general}" x:Name="NavGeneral"/>
+        </StackPanel>
+
+        <!-- Content -->
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- A newer PixlReplay: one slim line above the pages, only while there is one -->
+            <Border Grid.Row="0" Margin="36,6,36,2" MaxWidth="860" Padding="16,8,10,8" CornerRadius="10"
+                    Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1"
+                    Visibility="{Binding UpdateBarVisible, Converter={StaticResource Vis}}">
+                <DockPanel LastChildFill="True">
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Primary}" Content="{Binding UpdateActionText}" Command="{Binding UpdateCommand}"
+                            Padding="14,6" Visibility="{Binding UpdateActionVisible, Converter={StaticResource Vis}}"/>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Ghost}" Content="{l:T update.notes}" Command="{Binding UpdateNotesCommand}"
+                            Padding="12,6" Margin="0,0,8,0" Visibility="{Binding UpdateNotesVisible, Converter={StaticResource Vis}}"/>
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE896;" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding UpdateText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                </DockPanel>
+            </Border>
+
+            <ScrollViewer x:Name="Scroller" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <!-- The Clips page stays here (hidden on other pages): coming back needs no rebuilding or new layout -->
+                <Grid Margin="36,8,36,24" MaxWidth="860">
+                    <ContentControl x:Name="PageHost" Focusable="False"/>
+                    <ContentControl x:Name="ClipsHost" Focusable="False" Visibility="Collapsed"/>
+                </Grid>
+            </ScrollViewer>
+
+            <!-- The Library's chosen clips: a bar floating at the bottom, over the cards (they never move) -->
+            <Grid x:Name="LibraryBarLayer" Grid.Row="1" Visibility="Collapsed">
+                <Border x:Name="LibraryBar" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,22" Padding="18,8,8,8" CornerRadius="14"
+                        Background="{StaticResource CardHover}" BorderBrush="{StaticResource StrokeStrong}" BorderThickness="1"
+                        Visibility="{Binding HasSelection, Converter={StaticResource Vis}}">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="28" ShadowDepth="6" Direction="270" Opacity="0.45" Color="Black"/>
+                    </Border.Effect>
+                    <Grid>
+                        <!-- How many, and what to do with them -->
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding ConfirmingPermanent, Converter={StaticResource Vis}, ConverterParameter=invert}">
+                            <TextBlock Text="{Binding SelectedText}" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                            <Button Style="{StaticResource Ghost}" Command="{Binding RecycleSelectedCommand}" Padding="12,7" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l:T clips.recycle}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Ghost}" Command="{Binding AskPermanentCommand}" Padding="12,7" Foreground="{DynamicResource Accent}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{l:T clips.deleteForever}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Ghost}" Command="{Binding ClearSelectionCommand}" BorderThickness="0" Padding="10,8" Margin="6,0,0,0"
+                                    ToolTip="{l:T clips.clearSelection}" AutomationProperties.Name="{l:T clips.clearSelection}">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE711;" FontSize="12"/>
+                            </Button>
+                        </StackPanel>
+                        <!-- Delete for good: asked here, in the same bar -->
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding ConfirmingPermanent, Converter={StaticResource Vis}}">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding ConfirmText}" VerticalAlignment="Center" Margin="0,0,16,0" MaxWidth="360" TextTrimming="CharacterEllipsis"/>
+                            <Button Style="{StaticResource Ghost}" Content="{l:T clips.cancel}" Command="{Binding CancelPermanentCommand}" Padding="14,7" Margin="0,0,8,0"/>
+                            <Button Style="{StaticResource Primary}" Content="{l:T clips.confirm}" Command="{Binding ConfirmPermanentCommand}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="2" Background="{StaticResource NavBg}" BorderBrush="{StaticResource Stroke}" BorderThickness="0,1,0,0" Padding="28,12"
+                    Visibility="{Binding ShowBar, Converter={StaticResource Vis}}">
+                <DockPanel LastChildFill="False">
+                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Ellipse Width="8" Height="8" Fill="{StaticResource Warning}" Margin="0,0,8,0"
+                                 Visibility="{Binding IsDirty, Converter={StaticResource Vis}}"/>
+                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Primary}" Content="{l:T bar.apply}" Command="{Binding ApplyCommand}" MinWidth="110"/>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Ghost}" Content="{l:T bar.revert}" Command="{Binding RevertCommand}" Margin="0,0,10,0"/>
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- Share panel over everything (its own data context) -->
+        <l:PictureViewer x:Name="PictureLayer" Grid.RowSpan="2" Grid.ColumnSpan="2" Panel.ZIndex="9" Visibility="Collapsed"/>
+        <e:VideoViewer x:Name="VideoLayer" Grid.RowSpan="2" Grid.ColumnSpan="2" Panel.ZIndex="9" Visibility="Collapsed"/>
+        <ContentControl x:Name="ShareHost" Grid.RowSpan="2" Grid.ColumnSpan="2" Panel.ZIndex="10" Visibility="Collapsed" Focusable="False"/>
+        <!-- The editor, over the viewers and over Share (it can be opened from Share) -->
+        <ContentControl x:Name="EditorLayer" Grid.RowSpan="2" Grid.ColumnSpan="2" Panel.ZIndex="11" Visibility="Collapsed" Focusable="False"/>
+
+    </Grid>
+</Window>

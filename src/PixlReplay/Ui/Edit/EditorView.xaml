@@ -1,0 +1,965 @@
+<UserControl x:Class="PixlReplay.Ui.Edit.EditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:PixlReplay.Ui"
+             xmlns:e="clr-namespace:PixlReplay.Ui.Edit"
+             xmlns:ed="clr-namespace:PixlReplay.Engine.Edit"
+             Background="{StaticResource Bg}" Focusable="True">
+    <UserControl.Resources>
+        <!-- A small choice tile (fonts, styles, speeds, places): the content is the sample -->
+        <Style x:Key="Tile" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource KeyFocus}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Bd" Background="{StaticResource Bg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1.5" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource StrokeStrong}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoft}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- A colour look: the clip's frame through the look, its name over it -->
+        <Style x:Key="LookTile" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,4,4"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource KeyFocus}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid>
+                            <Border CornerRadius="7" Background="{StaticResource Surface}" ClipToBounds="True">
+                                <Border.OpacityMask>
+                                    <VisualBrush>
+                                        <VisualBrush.Visual>
+                                            <Border Width="56" Height="40" CornerRadius="7" Background="Black"/>
+                                        </VisualBrush.Visual>
+                                    </VisualBrush>
+                                </Border.OpacityMask>
+                                <Grid>
+                                    <Image Source="{Binding Thumb}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    <Border VerticalAlignment="Bottom" Height="20">
+                                        <Border.Background>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                <GradientStop Color="#00000000" Offset="0"/>
+                                                <GradientStop Color="#B0000000" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Border.Background>
+                                    </Border>
+                                    <TextBlock Text="{Binding Label}" FontSize="9.5" FontWeight="SemiBold" Foreground="White" Margin="3,0,1,3"
+                                               VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
+                                </Grid>
+                            </Border>
+                            <Border x:Name="Ring" CornerRadius="7" BorderBrush="{StaticResource Stroke}" BorderThickness="1.5"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{StaticResource StrokeStrong}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="Ring" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="SmallLookTile" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,4,0"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource KeyFocus}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Grid>
+                            <Border CornerRadius="6" Background="{StaticResource Bg}" ClipToBounds="True">
+                                <Image Source="{Binding Thumb}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Border>
+                            <Border x:Name="Ring" CornerRadius="6" BorderBrush="{StaticResource Stroke}" BorderThickness="1.5"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{StaticResource StrokeStrong}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="Ring" Property="BorderThickness" Value="2"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- A key cap in the shortcuts sheet -->
+        <Style x:Key="KeyCap" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Bg}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource StrokeStrong}"/>
+            <Setter Property="BorderThickness" Value="1,1,1,2"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="6,1"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="MinWidth" Value="22"/>
+        </Style>
+        <Style x:Key="Sample" TargetType="TextBlock">
+            <Setter Property="Text" Value="{l:T editor.fontSample}"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <!-- A section's name in the inspector -->
+        <Style x:Key="Sec" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,10,0,5"/>
+        </Style>
+        <Style x:Key="Hint" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,12,0,0"/>
+            <Setter Property="LineHeight" Value="17"/>
+        </Style>
+        <Style x:Key="ValueText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="TextAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FlowDirection" Value="LeftToRight"/>
+        </Style>
+        <!-- An icon button that mutes a sound: dim while muted -->
+        <Style x:Key="MuteIcon" TargetType="ToggleButton">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource KeyFocus}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="6">
+                            <Grid>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Line x:Name="Slash" X1="7" Y1="21" X2="21" Y2="7" Stroke="{StaticResource TextSecondary}" StrokeThickness="1.6"
+                                      Visibility="Collapsed" FlowDirection="LeftToRight"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter TargetName="Slash" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- The Add pill's buttons: icon and name (the name hides when the bar is narrow) -->
+        <Style x:Key="AddButton" TargetType="ButtonBase">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource KeyFocus}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ButtonBase">
+                        <Border x:Name="Bd" Background="Transparent" CornerRadius="7" Padding="{TemplateBinding Padding}" BorderThickness="1" BorderBrush="Transparent">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource Icon}" Text="{TemplateBinding Tag}" FontSize="14" VerticalAlignment="Center"/>
+                                <ContentPresenter x:Name="Label" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="ToggleButton.IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoft}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding Compact, RelativeSource={RelativeSource AncestorType=e:EditorView}}" Value="True">
+                                <Setter TargetName="Label" Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- A square icon button of the play bar and the top bar -->
+        <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource Ghost}">
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+        <!-- The main button, low enough for the title row -->
+        <Style x:Key="TopPrimary" TargetType="Button" BasedOn="{StaticResource Primary}">
+            <Setter Property="FontSize" Value="13.5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{DynamicResource Accent}" CornerRadius="8" Padding="18,0" BorderThickness="2" BorderBrush="Transparent">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- A slider row: an icon or letter, the slider, its value -->
+        <Style x:Key="EditSlider" TargetType="Slider" BasedOn="{StaticResource {x:Type Slider}}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="8,0"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top: in the window's title row, beside its own buttons (the empty part still drags the window) -->
+        <Grid Margin="14,4,150,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Style="{StaticResource Ghost}" Command="{Binding CloseCommand}" Padding="11,0" Height="32" AutomationProperties.Name="{l:T editor.back}"
+                    WindowChrome.IsHitTestVisibleInChrome="True">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock x:Name="BackIcon" Style="{StaticResource Icon}" Text="&#xE72B;" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:T editor.back}" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="13.5" FontWeight="SemiBold" Margin="14,0" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" FlowDirection="LeftToRight" HorizontalAlignment="Left" IsHitTestVisible="False"/>
+            <Button Grid.Column="2" Style="{StaticResource IconButton}" Command="{Binding ShortcutsCommand}" Margin="0,0,6,0"
+                    ToolTip="{l:T editor.shortcutsTip}" AutomationProperties.Name="{l:T editor.shortcuts}" WindowChrome.IsHitTestVisibleInChrome="True">
+                <TextBlock Style="{StaticResource Icon}" Text="&#xE765;" FontSize="14"/>
+            </Button>
+            <Button Grid.Column="3" Style="{StaticResource IconButton}" Command="{Binding UndoCommand}" Margin="0,0,6,0"
+                    ToolTip="{l:T editor.undoTip}" AutomationProperties.Name="{l:T editor.undo}" WindowChrome.IsHitTestVisibleInChrome="True">
+                <TextBlock x:Name="UndoIcon" Style="{StaticResource Icon}" Text="&#xE7A7;" FontSize="13"/>
+            </Button>
+            <Button Grid.Column="4" Style="{StaticResource IconButton}" Command="{Binding RedoCommand}" Margin="0,0,10,0"
+                    ToolTip="{l:T editor.redoTip}" AutomationProperties.Name="{l:T editor.redo}" WindowChrome.IsHitTestVisibleInChrome="True">
+                <TextBlock x:Name="RedoIcon" Style="{StaticResource Icon}" Text="&#xE7A6;" FontSize="13"/>
+            </Button>
+            <Button Grid.Column="5" Style="{StaticResource Ghost}" Command="{Binding ResetCommand}" Padding="11,0" Height="32" Margin="0,0,10,0"
+                    ToolTip="{l:T editor.resetTip}" AutomationProperties.Name="{l:T editor.reset}" WindowChrome.IsHitTestVisibleInChrome="True">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Style="{StaticResource Icon}" Text="&#xE72C;" FontSize="12" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{l:T editor.reset}" FontSize="13" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+            <Button Grid.Column="6" Style="{StaticResource TopPrimary}" Command="{Binding PrimaryCommand}" Content="{Binding PrimaryLabel}" MinWidth="88"
+                    Height="32" WindowChrome.IsHitTestVisibleInChrome="True"/>
+        </Grid>
+
+        <!-- Middle: the preview with its play bar, and the inspector beside both -->
+        <Grid Grid.Row="1" Margin="16,6,16,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="272"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- The preview gets the most room; never mirrored -->
+            <Border CornerRadius="10" Background="Black" ClipToBounds="True" Margin="0,0,12,0">
+                <Grid x:Name="PreviewHost" FlowDirection="LeftToRight">
+                    <Image x:Name="PreviewImage" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                </Grid>
+            </Border>
+
+            <!-- Play bar: play and time, the Add pill, split, delete and zoom -->
+            <Grid x:Name="PlayBar" Grid.Row="1" Margin="0,8,12,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel x:Name="LeftGroup" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="PlayButton" Style="{StaticResource IconButton}" Click="OnPlay" AutomationProperties.Name="{l:T viewer.play}"
+                            Visibility="{Binding HasTimeline, Converter={StaticResource Vis}}">
+                        <TextBlock x:Name="PlayIcon" Style="{StaticResource Icon}" Text="&#xF5B0;" FontSize="13"/>
+                    </Button>
+                    <TextBlock x:Name="TimeText" FontFamily="Cascadia Mono, Consolas" FontSize="11.5" Foreground="{StaticResource TextSecondary}"
+                               Margin="10,0,8,0" VerticalAlignment="Center" FlowDirection="LeftToRight"
+                               Visibility="{Binding HasTimeline, Converter={StaticResource Vis}}"/>
+                </StackPanel>
+
+                <StackPanel x:Name="MidGroup" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8,0">
+                    <Border x:Name="AddPill" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="10"
+                            Padding="3" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Style="{StaticResource AddButton}" Tag="&#xE8D2;" Content="{l:T editor.add.text}" Command="{Binding AddTextCommand}"
+                                    ToolTip="{l:T editor.add.text}" AutomationProperties.Name="{l:T editor.add.text}"/>
+                            <ToggleButton Style="{StaticResource AddButton}" Tag="&#xEDFB;" Content="{l:T editor.add.draw}" Command="{Binding DrawCommand}"
+                                          IsChecked="{Binding IsDrawMode, Mode=OneWay}" ToolTip="{l:T editor.add.draw}" AutomationProperties.Name="{l:T editor.add.draw}"/>
+                            <ToggleButton Style="{StaticResource AddButton}" Tag="&#xE879;" Content="{l:T editor.add.shapes}" Command="{Binding ShapesCommand}"
+                                          IsChecked="{Binding IsShapesMode, Mode=OneWay}" ToolTip="{l:T editor.add.shapes}" AutomationProperties.Name="{l:T editor.add.shapes}"/>
+                            <ToggleButton Style="{StaticResource AddButton}" Tag="&#xED1A;" Content="{l:T editor.add.blur}" Command="{Binding BlurCommand}"
+                                          IsChecked="{Binding IsBlurMode, Mode=OneWay}" ToolTip="{l:T editor.add.blur}" AutomationProperties.Name="{l:T editor.add.blur}"/>
+                            <ToggleButton Style="{StaticResource AddButton}" Tag="&#xE7A8;" Content="{l:T editor.add.crop}" Command="{Binding CropCommand}"
+                                          IsChecked="{Binding IsCropMode, Mode=OneWay}" ToolTip="{l:T editor.add.crop}" AutomationProperties.Name="{l:T editor.add.crop}"
+                                          Visibility="{Binding CanCrop, Converter={StaticResource Vis}}"/>
+                            <Button Style="{StaticResource AddButton}" Tag="&#xE7F0;" Content="{l:T editor.add.captions}" Command="{Binding CaptionsCommand}"
+                                    ToolTip="{l:T editor.captionsTip}" AutomationProperties.Name="{l:T editor.captions}"
+                                    Visibility="{Binding ShowsCaptionsButton, Converter={StaticResource Vis}}"/>
+                        </StackPanel>
+                    </Border>
+                    <!-- Auto captions at work: how far they are with a cancel mark, then for a moment how it went -->
+                    <Border x:Name="CaptionsBusyChip" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="10"
+                            Padding="10,0,4,0" Height="36" Margin="8,0,0,0" VerticalAlignment="Center" Visibility="{Binding CaptionsBusy, Converter={StaticResource Vis}}">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <StackPanel VerticalAlignment="Center" Width="116">
+                                <TextBlock Text="{Binding CaptionsStatus}" FontSize="11.5" TextTrimming="CharacterEllipsis"/>
+                                <ProgressBar Height="3" Minimum="0" Maximum="1" Value="{Binding CaptionsProgress, Mode=OneWay}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                            <Button Style="{StaticResource Ghost}" Command="{Binding CancelCaptionsCommand}" BorderThickness="0" Padding="7,5" Margin="4,0,0,0"
+                                    ToolTip="{l:T editor.cancel}" AutomationProperties.Name="{l:T editor.cancel}">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE711;" FontSize="10"/>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+                    <Border x:Name="CaptionsNote" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="10"
+                            Padding="12,0" Height="36" Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Hand"
+                            Visibility="{Binding HasCaptionsNote, Converter={StaticResource Vis}}" MouseLeftButtonUp="OnCaptionsNote">
+                        <TextBlock Text="{Binding CaptionsStatus}" FontSize="12" VerticalAlignment="Center" MaxWidth="180" TextTrimming="CharacterEllipsis"/>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel x:Name="RightGroup" Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Style="{StaticResource IconButton}" Command="{Binding SplitCommand}" Margin="0,0,6,0" ToolTip="{l:T editor.splitTip}"
+                            AutomationProperties.Name="{l:T editor.split}" Visibility="{Binding HasTimeline, Converter={StaticResource Vis}}">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE8C6;" FontSize="14"/>
+                    </Button>
+                    <Button Style="{StaticResource IconButton}" Command="{Binding DeleteCommand}" ToolTip="{l:T editor.deleteTip}"
+                            AutomationProperties.Name="{l:T editor.delete}">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="14"/>
+                    </Button>
+                    <StackPanel x:Name="ZoomBox" Orientation="Horizontal" Margin="10,0,0,0">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE71E;" FontSize="13" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                        <Slider Width="60" MinWidth="0" Minimum="1" Maximum="20" Value="{Binding TimelineZoom}" SmallChange="0.5" LargeChange="2" Margin="6,0,0,0"
+                                VerticalAlignment="Center" ToolTip="{l:T editor.zoom}" AutomationProperties.Name="{l:T editor.zoom}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- The inspector: only what is chosen (or the whole clip), never scrolling -->
+            <Border Grid.Column="1" Grid.RowSpan="2" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1"
+                    CornerRadius="12" Padding="16,12,16,12" Margin="0,0,0,8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Height="32">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Style="{StaticResource Icon}" Text="{Binding PageGlyph}" FontSize="15" VerticalAlignment="Center" Margin="0,0,9,0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding PageTitle}" FontSize="14.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" Text="{Binding PageNote}" Style="{StaticResource Caption}" FontSize="12" Margin="9,0,0,0" VerticalAlignment="Center"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <Button Grid.Column="3" Style="{StaticResource Ghost}" Command="{Binding ModeDoneCommand}" Padding="10,0" Height="28"
+                                Visibility="{Binding ShowsModeDone, Converter={StaticResource Vis}}" AutomationProperties.Name="{l:T editor.done}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="11" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="{l:T editor.done}" FontSize="12.5" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <!-- The whole clip (or picture): colour look and sound -->
+                        <e:FitPanel x:Name="ClipPage" Visibility="{Binding IsClipPage, Converter={StaticResource Vis}}">
+                            <StackPanel Visibility="{Binding HasTimeline, Converter={StaticResource Vis}}">
+                                <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.speed}"/>
+                                <ItemsControl ItemsSource="{Binding ClipSpeeds}" Focusable="False" Margin="0,0,-5,0" FlowDirection="LeftToRight">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <UniformGrid Columns="6"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <RadioButton Style="{StaticResource Tile}" GroupName="clipSpeed" Content="{Binding Label}" FontSize="11.5"
+                                                         IsChecked="{Binding IsSelected, Mode=TwoWay}" AutomationProperties.Name="{Binding Label}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Grid Margin="0,6,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Slider Style="{StaticResource EditSlider}" Margin="0,0,8,0" Minimum="0" Maximum="1" Value="{Binding ClipSpeedSlider}"
+                                            SmallChange="0.0125" LargeChange="0.0625" FlowDirection="LeftToRight" AutomationProperties.Name="{l:T editor.speed}"/>
+                                    <TextBlock Grid.Column="1" Style="{StaticResource ValueText}" Text="{Binding ClipSpeedLabel}"/>
+                                </Grid>
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.look}" e:FitPanel.Optional="True"/>
+                            <ItemsControl ItemsSource="{Binding Looks}" Focusable="False" Margin="0,4,-4,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="5"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <RadioButton Style="{StaticResource LookTile}" GroupName="look" IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                     ToolTip="{Binding Label}" AutomationProperties.Name="{Binding Label}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Grid Margin="0,2,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource Caption}" FontSize="12" Text="{l:T editor.strength}" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="1" Value="{Binding LookStrength}" SmallChange="0.05"
+                                        LargeChange="0.1" AutomationProperties.Name="{l:T editor.strength}" Margin="10,0,0,0"/>
+                            </Grid>
+                            <StackPanel Visibility="{Binding HasSound, Converter={StaticResource Vis}}">
+                                <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.clipSound}"/>
+                                <Grid Visibility="{Binding HasSeparateTracks, Converter={StaticResource Vis}}" Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ToggleButton Style="{StaticResource MuteIcon}" IsChecked="{Binding GameOn}" ToolTip="{l:T editor.game}"
+                                                  AutomationProperties.Name="{l:T editor.game}">
+                                        <TextBlock Style="{StaticResource Icon}" Text="&#xE7FC;" FontSize="14"/>
+                                    </ToggleButton>
+                                    <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="2" Value="{Binding GameLevel}" SmallChange="0.05"
+                                            LargeChange="0.1" IsEnabled="{Binding GameOn}" AutomationProperties.Name="{l:T editor.game}"/>
+                                    <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding GameLabel}"/>
+                                </Grid>
+                                <Grid Visibility="{Binding HasSeparateTracks, Converter={StaticResource Vis}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ToggleButton Style="{StaticResource MuteIcon}" IsChecked="{Binding MicOn}" ToolTip="{l:T editor.mic}"
+                                                  AutomationProperties.Name="{l:T editor.mic}">
+                                        <TextBlock Style="{StaticResource Icon}" Text="&#xE720;" FontSize="14"/>
+                                    </ToggleButton>
+                                    <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="2" Value="{Binding MicLevel}" SmallChange="0.05"
+                                            LargeChange="0.1" IsEnabled="{Binding MicOn}" AutomationProperties.Name="{l:T editor.mic}"/>
+                                    <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding MicLabel}"/>
+                                </Grid>
+                                <Grid Visibility="{Binding HasOneTrack, Converter={StaticResource Vis}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE767;" FontSize="14" Width="28" TextAlignment="Center" VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextSecondary}"/>
+                                    <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="2" Value="{Binding AllLevel}" SmallChange="0.05"
+                                            LargeChange="0.1" AutomationProperties.Name="{l:T editor.allSound}"/>
+                                    <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding AllLabel}"/>
+                                </Grid>
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Hint}" Text="{Binding PageHint}" e:FitPanel.Optional="True"
+                                       Visibility="{Binding PageHint, Converter={StaticResource Vis}}"/>
+                        </e:FitPanel>
+
+                        <!-- The chosen parts: speed and sound of their own -->
+                        <e:FitPanel Visibility="{Binding IsPartPage, Converter={StaticResource Vis}}">
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.speed}"/>
+                            <ItemsControl ItemsSource="{Binding Speeds}" Focusable="False" Margin="0,0,-5,0" FlowDirection="LeftToRight">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="6"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <RadioButton Style="{StaticResource Tile}" GroupName="speed" Content="{Binding Label}" FontSize="11.5"
+                                                     IsChecked="{Binding IsSelected, Mode=TwoWay}" AutomationProperties.Name="{Binding Label}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Grid Margin="0,6,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Slider Style="{StaticResource EditSlider}" Margin="0,0,8,0" Minimum="0" Maximum="1" Value="{Binding PartSpeedSlider}"
+                                        SmallChange="0.0125" LargeChange="0.0625" FlowDirection="LeftToRight" AutomationProperties.Name="{l:T editor.speed}"/>
+                                <TextBlock Grid.Column="1" Style="{StaticResource ValueText}" Text="{Binding PartSpeedLabel}"/>
+                            </Grid>
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.look}" e:FitPanel.Optional="True"/>
+                            <ItemsControl ItemsSource="{Binding PartLooks}" Focusable="False" Margin="0,4,-4,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="7"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <RadioButton Style="{StaticResource SmallLookTile}" GroupName="partLook" IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                     ToolTip="{Binding Label}" AutomationProperties.Name="{Binding Label}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Slider Style="{StaticResource EditSlider}" Margin="0,6,0,0" Minimum="0" Maximum="1" Value="{Binding PartLookStrength}" SmallChange="0.05"
+                                    LargeChange="0.1" ToolTip="{l:T editor.strength}" AutomationProperties.Name="{l:T editor.strength}"/>
+                            <StackPanel Visibility="{Binding HasSound, Converter={StaticResource Vis}}">
+                                <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.partSound}"/>
+                                <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock x:Name="PartGameIcon" Style="{StaticResource Icon}" Text="&#xE7FC;" FontSize="14" Width="28" TextAlignment="Center"
+                                               VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+                                    <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="2" Value="{Binding PartGame}" SmallChange="0.05"
+                                            LargeChange="0.1" AutomationProperties.Name="{l:T editor.game}"/>
+                                    <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding PartGameLabel}"/>
+                                </Grid>
+                                <Grid Visibility="{Binding HasSeparateTracks, Converter={StaticResource Vis}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE720;" FontSize="14" Width="28" TextAlignment="Center" VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextSecondary}"/>
+                                    <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="2" Value="{Binding PartMic}" SmallChange="0.05"
+                                            LargeChange="0.1" AutomationProperties.Name="{l:T editor.mic}"/>
+                                    <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding PartMicLabel}"/>
+                                </Grid>
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Hint}" Text="{Binding PageHint}" e:FitPanel.Optional="True"/>
+                        </e:FitPanel>
+
+                        <!-- The chosen texts or captions -->
+                        <e:FitPanel Visibility="{Binding IsTextPage, Converter={StaticResource Vis}}">
+                            <TextBox x:Name="WordsBox" Text="{Binding Words, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,2" FontSize="13"
+                                     Visibility="{Binding HasWords, Converter={StaticResource Vis}}" AutomationProperties.Name="{l:T editor.words}"/>
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.font}" e:FitPanel.Optional="True"/>
+                            <ComboBox ItemsSource="{Binding Fonts}" SelectedValue="{Binding TextFont, Mode=TwoWay}" SelectedValuePath="Key" Margin="0,4,0,0"
+                                      Height="34" AutomationProperties.Name="{l:T editor.font}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Label}" FontFamily="{Binding Family}" FontWeight="{Binding Weight}" FontSize="14" VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.style}" e:FitPanel.Optional="True"/>
+                            <!-- Each style shows itself on a sample, with its name -->
+                            <UniformGrid Columns="4" Margin="0,4,-5,0">
+                                <RadioButton Style="{StaticResource Tile}" Height="46" GroupName="effect" AutomationProperties.Name="{l:T editor.effect.plain}"
+                                             IsChecked="{Binding TextEffect, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:TextEffect.Plain}}">
+                                    <StackPanel>
+                                        <Grid Height="22"><TextBlock Style="{StaticResource Sample}"/></Grid>
+                                        <TextBlock Text="{l:T editor.effect.plain}" FontSize="9.5" HorizontalAlignment="Center" Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource Tile}" Height="46" GroupName="effect" AutomationProperties.Name="{l:T editor.effect.box}"
+                                             IsChecked="{Binding TextEffect, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:TextEffect.Box}}">
+                                    <StackPanel>
+                                        <Grid Height="22">
+                                            <Border Background="#E0141010" CornerRadius="4" Padding="6,0" HorizontalAlignment="Center">
+                                                <TextBlock Style="{StaticResource Sample}"/>
+                                            </Border>
+                                        </Grid>
+                                        <TextBlock Text="{l:T editor.effect.box}" FontSize="9.5" HorizontalAlignment="Center" Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource Tile}" Height="46" GroupName="effect" AutomationProperties.Name="{l:T editor.effect.shadow}"
+                                             IsChecked="{Binding TextEffect, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:TextEffect.Shadow}}">
+                                    <StackPanel>
+                                        <Grid Height="22">
+                                            <TextBlock Style="{StaticResource Sample}" HorizontalAlignment="Center">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect Color="Black" ShadowDepth="2.5" Direction="315" BlurRadius="0" Opacity="1"/>
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                        </Grid>
+                                        <TextBlock Text="{l:T editor.effect.shadow}" FontSize="9.5" HorizontalAlignment="Center" Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource Tile}" Height="46" GroupName="effect" AutomationProperties.Name="{l:T editor.effect.outline}"
+                                             IsChecked="{Binding TextEffect, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:TextEffect.Outline}}">
+                                    <StackPanel>
+                                        <Grid Height="22" HorizontalAlignment="Center">
+                                            <TextBlock Style="{StaticResource Sample}" Foreground="Black" Margin="-1.5,0,1.5,0"/>
+                                            <TextBlock Style="{StaticResource Sample}" Foreground="Black" Margin="1.5,0,-1.5,0"/>
+                                            <TextBlock Style="{StaticResource Sample}" Foreground="Black" Margin="0,-1.5,0,1.5"/>
+                                            <TextBlock Style="{StaticResource Sample}" Foreground="Black" Margin="0,1.5,0,-1.5"/>
+                                            <TextBlock Style="{StaticResource Sample}"/>
+                                        </Grid>
+                                        <TextBlock Text="{l:T editor.effect.outline}" FontSize="9.5" HorizontalAlignment="Center" Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource Tile}" Height="46" GroupName="effect" AutomationProperties.Name="{l:T editor.effect.glow}"
+                                             IsChecked="{Binding TextEffect, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:TextEffect.Glow}}">
+                                    <StackPanel>
+                                        <Grid Height="22">
+                                            <TextBlock Style="{StaticResource Sample}" HorizontalAlignment="Center">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect Color="White" ShadowDepth="0" BlurRadius="9" Opacity="0.95"/>
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                        </Grid>
+                                        <TextBlock Text="{l:T editor.effect.glow}" FontSize="9.5" HorizontalAlignment="Center" Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource Tile}" Height="46" GroupName="effect" AutomationProperties.Name="{l:T editor.effect.neon}"
+                                             IsChecked="{Binding TextEffect, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:TextEffect.Neon}}">
+                                    <StackPanel>
+                                        <Grid Height="22">
+                                            <TextBlock Style="{StaticResource Sample}" Foreground="#FFD5E0" HorizontalAlignment="Center">
+                                                <TextBlock.Effect>
+                                                    <DropShadowEffect Color="#F48BA4" ShadowDepth="0" BlurRadius="10" Opacity="1"/>
+                                                </TextBlock.Effect>
+                                            </TextBlock>
+                                        </Grid>
+                                        <TextBlock Text="{l:T editor.effect.neon}" FontSize="9.5" HorizontalAlignment="Center" Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource Tile}" Height="46" GroupName="effect" AutomationProperties.Name="{l:T editor.effect.pill}"
+                                             IsChecked="{Binding TextEffect, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:TextEffect.Pill}}">
+                                    <StackPanel>
+                                        <Grid Height="22">
+                                            <Border Background="#E0141010" CornerRadius="10" Padding="8,0" HorizontalAlignment="Center">
+                                                <TextBlock Style="{StaticResource Sample}"/>
+                                            </Border>
+                                        </Grid>
+                                        <TextBlock Text="{l:T editor.effect.pill}" FontSize="9.5" HorizontalAlignment="Center" Margin="0,1,0,0"/>
+                                    </StackPanel>
+                                </RadioButton>
+                            </UniformGrid>
+                            <e:ColourRow Swatches="{Binding TextSwatches}" Colour="{Binding TextColor, Mode=TwoWay}" GroupName="text" Margin="0,12,0,0"/>
+                            <Grid Margin="0,8,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="A" FontSize="11" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0.03" Maximum="0.15" Value="{Binding TextSize}" SmallChange="0.005"
+                                        LargeChange="0.02" ToolTip="{l:T editor.size}" AutomationProperties.Name="{l:T editor.size}"/>
+                                <TextBlock Grid.Column="2" Text="A" FontSize="18" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.place}" e:FitPanel.Optional="True"/>
+                            <UniformGrid Columns="3" Margin="0,4,-5,0">
+                                <RadioButton Style="{StaticResource Tile}" GroupName="place" Content="{l:T editor.place.top}"
+                                             IsChecked="{Binding TextPlace, Converter={StaticResource Eq}, ConverterParameter=top}"/>
+                                <RadioButton Style="{StaticResource Tile}" GroupName="place" Content="{l:T editor.place.middle}"
+                                             IsChecked="{Binding TextPlace, Converter={StaticResource Eq}, ConverterParameter=middle}"/>
+                                <RadioButton Style="{StaticResource Tile}" GroupName="place" Content="{l:T editor.place.bottom}"
+                                             IsChecked="{Binding TextPlace, Converter={StaticResource Eq}, ConverterParameter=bottom}"/>
+                            </UniformGrid>
+                            <TextBlock Style="{StaticResource Hint}" Text="{Binding PageHint}" e:FitPanel.Optional="True"
+                                       Visibility="{Binding PageHint, Converter={StaticResource Vis}}"/>
+                        </e:FitPanel>
+
+                        <!-- Lines: the brush for the next one (Draw), or the chosen ones -->
+                        <e:FitPanel Visibility="{Binding IsLinePage, Converter={StaticResource Vis}}">
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.color}"/>
+                            <e:ColourRow Swatches="{Binding PenSwatches}" Colour="{Binding PenColor, Mode=TwoWay}" GroupName="pen"/>
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.thickness}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Width="12" Height="1.5" Background="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0.003" Maximum="0.025" Value="{Binding PenThickness}" SmallChange="0.001"
+                                        LargeChange="0.004" AutomationProperties.Name="{l:T editor.thickness}"/>
+                                <Border Grid.Column="2" Width="14" Height="6" CornerRadius="3" Background="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                            </Grid>
+                            <TextBlock Style="{StaticResource Hint}" Text="{Binding PageHint}" e:FitPanel.Optional="True"
+                                       Visibility="{Binding PageHint, Converter={StaticResource Vis}}"/>
+                        </e:FitPanel>
+
+                        <!-- Shapes: the next one (Shapes), or the chosen ones -->
+                        <e:FitPanel Visibility="{Binding IsShapePage, Converter={StaticResource Vis}}">
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.kind}"/>
+                            <UniformGrid Columns="3" Margin="0,0,-5,0">
+                                <RadioButton Style="{StaticResource Tile}" GroupName="shape" ToolTip="{l:T editor.arrow}" AutomationProperties.Name="{l:T editor.arrow}"
+                                             IsChecked="{Binding ShapeKind, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:ShapeKind.Arrow}}">
+                                    <Path Data="M3,15 L19,3 M11,3 L19,3 L19,11" Width="22" Height="18" FlowDirection="LeftToRight" StrokeThickness="2"
+                                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource Tile}" GroupName="shape" ToolTip="{l:T editor.ellipse}" AutomationProperties.Name="{l:T editor.ellipse}"
+                                             IsChecked="{Binding ShapeKind, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:ShapeKind.Ellipse}}">
+                                    <Ellipse Width="22" Height="16" StrokeThickness="2"
+                                             Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </RadioButton>
+                                <RadioButton Style="{StaticResource Tile}" GroupName="shape" ToolTip="{l:T editor.rectangle}" AutomationProperties.Name="{l:T editor.rectangle}"
+                                             IsChecked="{Binding ShapeKind, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:ShapeKind.Rectangle}}">
+                                    <Rectangle Width="22" Height="16" StrokeThickness="2" RadiusX="2" RadiusY="2"
+                                               Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                </RadioButton>
+                            </UniformGrid>
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.color}"/>
+                            <e:ColourRow Swatches="{Binding ShapeSwatches}" Colour="{Binding ShapeColor, Mode=TwoWay}" GroupName="shape"/>
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.thickness}"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Width="12" Height="1.5" Background="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0.003" Maximum="0.025" Value="{Binding ShapeThickness}" SmallChange="0.001"
+                                        LargeChange="0.004" AutomationProperties.Name="{l:T editor.thickness}"/>
+                                <Border Grid.Column="2" Width="14" Height="6" CornerRadius="3" Background="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                            </Grid>
+                        </e:FitPanel>
+
+                        <!-- A blur box: moved and resized on the picture -->
+                        <e:FitPanel Visibility="{Binding IsBlurPage, Converter={StaticResource Vis}}">
+                            <TextBlock Style="{StaticResource Hint}" Text="{Binding PageHint}" Margin="0,8,0,0"/>
+                        </e:FitPanel>
+
+                        <!-- Several kinds chosen: one colour for all of them -->
+                        <e:FitPanel Visibility="{Binding IsMixedPage, Converter={StaticResource Vis}}">
+                            <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.color}"/>
+                            <e:ColourRow Swatches="{Binding MixedSwatches}" Colour="{Binding MixedColor, Mode=TwoWay}" GroupName="mixed"/>
+                            <TextBlock Style="{StaticResource Hint}" Text="{Binding PageHint}" e:FitPanel.Optional="True"/>
+                        </e:FitPanel>
+
+                        <!-- Crop (pictures) -->
+                        <e:FitPanel Visibility="{Binding IsCropPage, Converter={StaticResource Vis}}">
+                            <UniformGrid Columns="2" Margin="0,8,-6,0">
+                                <Button Style="{StaticResource Ghost}" Command="{Binding CropRatioCommand}" CommandParameter="free" Content="{l:T editor.free}"
+                                        Padding="0,8" Margin="0,0,6,6" FontSize="13"/>
+                                <Button Style="{StaticResource Ghost}" Command="{Binding CropRatioCommand}" CommandParameter="16:9" Content="16:9"
+                                        Padding="0,8" Margin="0,0,6,6" FontSize="13"/>
+                                <Button Style="{StaticResource Ghost}" Command="{Binding CropRatioCommand}" CommandParameter="9:16" Content="9:16"
+                                        Padding="0,8" Margin="0,0,6,6" FontSize="13"/>
+                                <Button Style="{StaticResource Ghost}" Command="{Binding CropRatioCommand}" CommandParameter="1:1" Content="1:1"
+                                        Padding="0,8" Margin="0,0,6,6" FontSize="13"/>
+                            </UniformGrid>
+                        </e:FitPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Clips only: the timeline, full width -->
+        <Border Grid.Row="2" Margin="16,0,16,14" Background="{StaticResource NavBg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="12"
+                Padding="0,2,0,2" Visibility="{Binding HasTimeline, Converter={StaticResource Vis}}">
+            <ContentControl x:Name="TimelineHost" Focusable="False"/>
+        </Border>
+
+        <!-- Back with changes: asked before they are thrown away (keeping on is the default) -->
+        <Grid Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding AskingDiscard, Converter={StaticResource Vis}}">
+            <Border Style="{StaticResource Card}" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22,20" Margin="0">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Section}" Text="{l:T editor.discard.title}" Margin="0,0,0,8"/>
+                    <TextBlock Style="{StaticResource Caption}" Text="{l:T editor.discard.body}" Margin="0,0,0,18"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource Ghost}" Content="{l:T editor.discard.yes}" Command="{Binding DiscardCommand}" Padding="16,9" Margin="0,0,10,0"/>
+                        <Button Style="{StaticResource Primary}" Content="{l:T editor.discard.no}" Command="{Binding KeepEditingCommand}" Padding="18,9"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Reset: asked first (keeping the edits is the default); Ctrl+Z brings them back after -->
+        <Grid Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding AskingReset, Converter={StaticResource Vis}}">
+            <Border Style="{StaticResource Card}" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22,20" Margin="0">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Section}" Text="{l:T editor.reset.title}" Margin="0,0,0,8"/>
+                    <TextBlock Style="{StaticResource Caption}" Text="{l:T editor.reset.body}" TextWrapping="Wrap" Margin="0,0,0,18"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource Ghost}" Content="{l:T editor.reset.yes}" Command="{Binding ConfirmResetCommand}" Padding="16,9" Margin="0,0,10,0"/>
+                        <Button Style="{StaticResource Primary}" Content="{l:T editor.reset.no}" Command="{Binding CancelResetCommand}" Padding="18,9"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Captions again: asked first, so a press by mistake never throws edited captions away -->
+        <Grid Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding AskingRecaption, Converter={StaticResource Vis}}">
+            <Border Style="{StaticResource Card}" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22,20" Margin="0">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Section}" Text="{l:T editor.recaption.title}" Margin="0,0,0,8"/>
+                    <TextBlock Style="{StaticResource Caption}" Text="{l:T editor.recaption.body}" TextWrapping="Wrap" Margin="0,0,0,18"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource Ghost}" Content="{l:T editor.recaption.yes}" Command="{Binding RecaptionCommand}" Padding="16,9" Margin="0,0,10,0"/>
+                        <Button x:Name="KeepCaptionsButton" Style="{StaticResource Primary}" Content="{l:T editor.recaption.no}" Command="{Binding KeepCaptionsCommand}"
+                                Padding="18,9"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Auto captions, every press: what it does in two lines (and the one-time download, only once the user agrees) -->
+        <Grid Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding ShowingIntro, Converter={StaticResource Vis}}">
+            <Border Style="{StaticResource Card}" Width="470" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24,22" Margin="0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE7F0;" FontSize="18" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Style="{StaticResource Section}" Text="{l:T editor.captions}" VerticalAlignment="Center" Margin="0"/>
+                    </StackPanel>
+                    <TextBlock Text="{l:T editor.intro.what}" TextWrapping="Wrap" FontSize="13.5" Margin="0,0,0,6"/>
+                    <TextBlock Text="{l:T editor.intro.where}" TextWrapping="Wrap" FontSize="13.5"/>
+                    <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,16,0,18"
+                            Visibility="{Binding NeedsDownload, Converter={StaticResource Vis}}">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE896;" FontSize="13" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                <TextBlock Text="{Binding DownloadQuestion}" FontWeight="SemiBold" FontSize="13"/>
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Caption}" Text="{l:T editor.intro.stays}" TextWrapping="Wrap" FontSize="12.5" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                        <Button Style="{StaticResource Ghost}" Content="{l:T editor.captions.notNow}" Command="{Binding NotNowCommand}" Padding="16,9" Margin="0,0,10,0"/>
+                        <Button x:Name="IntroStartButton" Style="{StaticResource Primary}" Content="{Binding IntroButton}" Command="{Binding IntroStartCommand}" Padding="18,9"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Every shortcut on one sheet (the keyboard button, or ?) -->
+        <Grid x:Name="ShortcutsSheet" Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding ShowingShortcuts, Converter={StaticResource Vis}}"
+              MouseLeftButtonDown="OnShortcutsBackdrop">
+            <Border Style="{StaticResource Card}" Width="760" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="26,20" Margin="0"
+                    MouseLeftButtonDown="OnShortcutsCard">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE765;" FontSize="18" Foreground="{DynamicResource Accent}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock Style="{StaticResource Section}" Text="{l:T editor.shortcuts}" VerticalAlignment="Center" Margin="0"/>
+                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="28"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel x:Name="KeysLeft"/>
+                        <StackPanel x:Name="KeysRight" Grid.Column="2"/>
+                    </Grid>
+                    <Button Style="{StaticResource Ghost}" Content="{l:T editor.close}" Command="{Binding CloseShortcutsCommand}" HorizontalAlignment="Right"
+                            Padding="16,8" Margin="0,16,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Saving: the editor stays until the edit is written (a ring fills to 100%, a check, then it goes by itself) -->
+        <Grid Grid.RowSpan="3" Background="#C01A1514" Visibility="{Binding IsSaving, Converter={StaticResource Vis}}">
+            <Border Style="{StaticResource Card}" Width="320" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="28,26,28,22" Margin="0">
+                <StackPanel>
+                    <Grid Width="124" Height="124" HorizontalAlignment="Center">
+                        <l:ProgressRing Value="{Binding SaveProgress}" Thickness="9" Fill="{DynamicResource Accent}" Track="{StaticResource Stroke}"/>
+                        <TextBlock Text="{Binding SavePercent}" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   FlowDirection="LeftToRight" Visibility="{Binding SaveWorking, Converter={StaticResource Vis}}"/>
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="40" Foreground="{DynamicResource Accent}" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" Visibility="{Binding SaveDone, Converter={StaticResource Vis}}"/>
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE783;" FontSize="36" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center"
+                                   VerticalAlignment="Center" Visibility="{Binding HasSaveError, Converter={StaticResource Vis}}"/>
+                    </Grid>
+                    <TextBlock Text="{Binding SaveTitle}" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,18,0,4"/>
+                    <TextBlock Text="{Binding SaveNote}" Style="{StaticResource Caption}" FontSize="13" HorizontalAlignment="Center"
+                               Visibility="{Binding HasSaveError, Converter={StaticResource Vis}, ConverterParameter=invert}"/>
+                    <TextBlock Text="{Binding SaveError}" Style="{StaticResource Caption}" FontSize="13" TextWrapping="Wrap" TextAlignment="Center"
+                               Visibility="{Binding HasSaveError, Converter={StaticResource Vis}}"/>
+                    <Button Style="{StaticResource Ghost}" Content="{l:T editor.cancel}" Command="{Binding CancelSaveCommand}" HorizontalAlignment="Center"
+                            Padding="18,7" Margin="0,18,0,0" Visibility="{Binding SaveWorking, Converter={StaticResource Vis}}"/>
+                    <Button Style="{StaticResource Primary}" Content="{l:T editor.backToEditing}" Command="{Binding BackToEditingCommand}" HorizontalAlignment="Center"
+                            Margin="0,18,0,0" Visibility="{Binding HasSaveError, Converter={StaticResource Vis}}"/>
+                    <!-- Keeps the card's height while done, so nothing jumps -->
+                    <Border Height="51" Visibility="{Binding SaveDone, Converter={StaticResource Vis}}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Save: a new copy, or in place of the original (asked every time) -->
+        <Grid x:Name="SaveChoice" Grid.RowSpan="3" Background="#B01A1514" Visibility="Collapsed" MouseLeftButtonDown="OnSaveChoiceBackdrop">
+            <Border Style="{StaticResource Card}" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22,20" Margin="0"
+                    MouseLeftButtonDown="OnSaveChoiceCard">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Section}" Text="{l:T editor.saveAs}" Margin="0,0,0,14"/>
+                    <Button x:Name="NewCopyButton" Style="{StaticResource Primary}" Click="OnNewCopy" HorizontalContentAlignment="Stretch" Padding="16,12" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="{l:T editor.newCopy}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{l:T editor.newCopyTip}" FontSize="12.5" Opacity="0.8" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Ghost}" Click="OnReplace" HorizontalContentAlignment="Stretch" Padding="16,12">
+                        <StackPanel>
+                            <TextBlock Text="{l:T editor.replace}" FontWeight="SemiBold"/>
+                            <TextBlock Text="{l:T editor.replaceTip}" Style="{StaticResource Caption}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Ghost}" Click="OnSaveCancel" Content="{l:T editor.cancel}" HorizontalAlignment="Center" Margin="0,14,0,0" Padding="14,7"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

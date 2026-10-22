@@ -1,0 +1,38 @@
+<Window x:Class="PixlReplay.Ui.ShareSiteWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Width="1180" Height="880" MinWidth="720" MinHeight="560" WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Bg}" Foreground="{StaticResource TextPrimary}"
+        FontFamily="{StaticResource UiFont}" FontSize="14" UseLayoutRounding="True">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- What PixlReplay is doing on the page, and the file to drag in by hand if a site ever changes -->
+        <Border Background="{StaticResource NavBg}" BorderBrush="{StaticResource Stroke}" BorderThickness="0,0,0,1" Padding="18,10">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="16,0,0,0">
+                    <Border x:Name="FileTile" Background="{StaticResource Surface}" BorderBrush="{StaticResource StrokeStrong}" BorderThickness="1"
+                            CornerRadius="8" Padding="12,7" Cursor="SizeAll" MouseLeftButtonDown="OnTileDown" MouseMove="OnTileMove"
+                            ToolTip="{Binding ElementName=FileName, Path=Text}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE7C2;" FontSize="13" Margin="0,0,8,0"/>
+                            <TextBlock x:Name="DragText" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <Button x:Name="ShowButton" Style="{StaticResource Ghost}" Padding="10,8" Margin="8,0,0,0" Click="OnShowFile">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE838;" FontSize="13"/>
+                    </Button>
+                    <TextBlock x:Name="FileName" Visibility="Collapsed"/>
+                </StackPanel>
+                <Ellipse x:Name="Dot" Width="9" Height="9" Margin="0,0,10,0" VerticalAlignment="Center" Fill="{DynamicResource Accent}"/>
+                <TextBlock x:Name="Status" VerticalAlignment="Center" TextWrapping="Wrap"/>
+            </DockPanel>
+        </Border>
+
+        <wv2:WebView2 x:Name="Web" Grid.Row="1"/>
+    </Grid>
+</Window>

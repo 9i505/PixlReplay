@@ -1,0 +1,94 @@
+using System.Text.RegularExpressions;
+
+namespace PixlReplay.Engine;
+
+/// <summary>What a file on the Clips page is.</summary>
+public enum ClipKind { Video, Picture }
+
+/// <summary>A video or picture on the Clips page: where it is, the group it is listed under, when it was written and its size.</summary>
+public sealed record LibraryClip(string Path, string Group, DateTime Time, long Size, ClipKind Kind = ClipKind.Video);
+
+/// <summary>
+/// Every video and picture in the clips folder, whatever made it (PixlReplay, NVIDIA, Game Bar, OBS...) and however deep:
+/// the clips folder may be Windows' own Videos, with a folder per game.
+/// </summary>
+public static partial class ClipLibrary
+{
+    /// <summary>Folders deeper than this are not looked in (also a guard against folder links that loop).</summary>
+    const int MaxDepth = 8;
+
+    static readonly EnumerationOptions Options = new()
+    {
+        IgnoreInaccessible = true,
+        AttributesToSkip = FileAttributes.Hidden | FileAttributes.System,
+        MatchType = MatchType.Simple,
+    };
+
+    /// <summary>A video (.mp4) or a picture (.png, .jpg, .jpeg), whatever the case; null for anything else.</summary>
+    public static ClipKind? KindOf(string path) => System.IO.Path.GetExtension(path).ToLowerInvariant() switch
+    {
+        ".mp4" => ClipKind.Video,
+        ".png" or ".jpg" or ".jpeg" => ClipKind.Picture,
+        _ => null,
+    };
+
+    /// <summary>Every video and picture under <paramref name="root"/>, newest first; hidden folders and caches (".name") are left out.</summary>
+    public static List<LibraryClip> Scan(string root)
+    {
+        var found = new List<FileInfo>();
+        if (Directory.Exists(root))
+            Walk(new DirectoryInfo(root), found, 0);
+        return found
+            .OrderByDescending(f => f.LastWriteTime)
+            .Select(f => new LibraryClip(f.FullName, GroupOf(root, f.FullName), f.LastWriteTime, f.Length, KindOf(f.Name)!.Value))
+            .ToList();
+    }
+
+    /// <summary>The newest picture under <paramref name="root"/>, or null.</summary>
+    public static string? NewestPicture(string root) => Scan(root).FirstOrDefault(c => c.Kind == ClipKind.Picture)?.Path;
+
+    /// <summary>The newest video under <paramref name="root"/> (not a picture), or null.</summary>
+    public static string? NewestVideo(string root) => Scan(root).FirstOrDefault(c => c.Kind == ClipKind.Video)?.Path;
+
+    static void Walk(DirectoryInfo dir, List<FileInfo> into, int depth)
+    {
+        try
+        {
+            foreach (var file in dir.EnumerateFiles("*", Options))
+                if (!file.Name.StartsWith('.') && KindOf(file.Name) != null)
+                    into.Add(file);
+            if (depth < MaxDepth)
+                foreach (var sub in dir.EnumerateDirectories("*", Options))
+                    if (!sub.Name.StartsWith('.'))
+                        Walk(sub, into, depth + 1);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            // A folder that went away or cannot be read: the rest is still listed.
+        }
+    }
+
+    /// <summary>
+    /// The first folder under the root (a game; folders inside it count for it). Directly in the root: the app in
+    /// PixlReplay's own names ("Desktop 2026-10-14 23-17-00"), else the root folder's own name ("Videos").
+    /// </summary>
+    public static string GroupOf(string root, string path)
+    {
+        string relative = Path.GetRelativePath(root, path);
+        int separator = relative.IndexOfAny(['\\', '/']);
+        if (separator > 0)
+            return relative[..separator];
+        var named = PixlReplayName().Match(Path.GetFileNameWithoutExtension(path));
+        return named.Success ? named.Groups[1].Value : new DirectoryInfo(root).Name;
+    }
+
+    [GeneratedRegex(@"^(.+?) \d{4}-\d{2}-\d{2} \d{2}-\d{2}-\d{2}(?: \(\d+\))?$")]
+    private static partial Regex PixlReplayName();
+
+    /// <summary>The groups and how many videos and pictures each has, alphabetical.</summary>
+    public static List<(string Group, int Count)> Groups(IEnumerable<LibraryClip> clips) =>
+        clips.GroupBy(c => c.Group, StringComparer.OrdinalIgnoreCase)
+            .Select(g => (g.First().Group, g.Count()))
+            .OrderBy(g => g.Item1, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+}
