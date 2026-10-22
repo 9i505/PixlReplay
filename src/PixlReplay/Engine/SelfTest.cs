@@ -166,7 +166,7 @@ public static class SelfTest
             pipeline.RecordingStopped += (p, secs) => { path = p; clockSeconds = secs; stopped.Release(); };
             string? clip = null;
             using var saved = new SemaphoreSlim(0);
-            pipeline.ReplaySaved += (p, _) => { clip = p; saved.Release(); };
+            pipeline.ReplaySaved += (p, _, screen) => { if (screen == 0) { clip = p; saved.Release(); } };
 
             string target = ClipOrganizer.TargetPath(s.Output.Folder, "Desktop", DateTime.Now, perAppFolders: true);
             if (!pipeline.SetBufferActive(true) || !pipeline.ToggleRecording(target))
@@ -261,7 +261,7 @@ public static class SelfTest
             pipeline.Build();
             var saved = new List<string>();
             using var savedSignal = new SemaphoreSlim(0);
-            pipeline.ReplaySaved += (path, quick) => { lock (saved) saved.Add((quick ? "quick " : "main ") + path); savedSignal.Release(); };
+            pipeline.ReplaySaved += (path, quick, _) => { lock (saved) saved.Add((quick ? "quick " : "main ") + path); savedSignal.Release(); };
             string? recordingPath = null;
             using var recordSignal = new SemaphoreSlim(0);
             pipeline.RecordingStopped += (path, _) => { recordingPath = path; recordSignal.Release(); };

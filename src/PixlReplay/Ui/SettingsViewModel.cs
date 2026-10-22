@@ -374,7 +374,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
 
     void RebuildOptions()
     {
-        Monitors = [.. (_caps?.Monitors ?? []).Select(m => new Option(MonitorLabel(m), m.Id))];
+        Monitors = [.. (_caps?.Monitors ?? []).Select((m, i) => new Option(MonitorLabel(m, i + 1), m.Id))];
 
         Windows = WindowOptions(_s.Capture.Window);
 
@@ -403,10 +403,11 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
         _ => "720p",
     };
 
-    static string MonitorLabel(MonitorInfo m)
+    /// <param name="number">The screen's number, as its clips' names say it ("… - Screen 2").</param>
+    static string MonitorLabel(MonitorInfo m, int number)
     {
         string name = m.Name.Split(':')[0].Trim();
-        return $"{name} • {Text.Ltr($"{m.Width}×{m.Height}")}{(m.Primary ? Text.Get("capture.primary") : "")}";
+        return $"{Text.Format("clip.screen", number)} • {name} • {Text.Ltr($"{m.Width}×{m.Height}")}{(m.Primary ? Text.Get("capture.primary") : "")}";
     }
 
     static List<Option> DeviceOptions(List<NameValue>? devices)
@@ -435,6 +436,37 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
             Raise(nameof(Resolutions), nameof(Resolution));
         }
     }
+
+    /// <summary>
+    /// The other screens, each with a tick: recorded beside the main picture, one clip each. The screen the main picture
+    /// shows is left out (in Screen mode); a fourth can be ticked only after one is unticked.
+    /// </summary>
+    public List<ScreenChoice> ExtraScreenChoices
+    {
+        get
+        {
+            var monitors = _caps?.Monitors ?? [];
+            string? main = Mode == CaptureMode.Screen ? MonitorId : null;
+            var chosen = _s.Capture.ExtraMonitors;
+            bool full = chosen.Count(id => monitors.Any(m => m.Id == id && m.Id != main)) >= CapturePipeline.MaxExtraScreens;
+            return [.. monitors.Select((m, i) => (m, i)).Where(p => p.m.Id != main).Select(p =>
+            {
+                bool on = chosen.Contains(p.m.Id);
+                return new ScreenChoice(MonitorLabel(p.m, p.i + 1), on, on || !full, value => SetExtraScreen(p.m.Id, value));
+            })];
+        }
+    }
+
+    /// <summary>Only one screen to choose from: the card says so instead of showing an empty list.</summary>
+    public bool HasOtherScreens => ExtraScreenChoices.Count > 0;
+
+    void SetExtraScreen(string id, bool on) => Set(() =>
+    {
+        var list = _s.Capture.ExtraMonitors;
+        list.Remove(id);
+        if (on)
+            list.Add(id);
+    });
 
     public string WindowTarget { get => _s.Capture.Window; set => Set(() => _s.Capture.Window = value ?? ""); }
     public bool GameFallback { get => _s.Capture.GameFallbackToScreen; set => Set(() => _s.Capture.GameFallbackToScreen = value); }

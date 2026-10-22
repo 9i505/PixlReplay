@@ -567,5 +567,11 @@
   "look.theme.violet": "Violett",
   "look.theme.rose": "Rose",
   "look.theme.gold": "Gold",
-  "look.theme.light": "Hell"
+  "look.theme.light": "Hell",
+  "clip.screen": "Bildschirm {0}",
+  "count.screens.one": "{0} Bildschirm",
+  "count.screens.other": "{0} Bildschirme",
+  "capture.cardExtra": "Weitere Bildschirme",
+  "capture.extraTip": "Jedes Speichern macht auch einen Clip jedes Bildschirms hier",
+  "capture.extraNone": "Nur ein Bildschirm ist angeschlossen"
 }

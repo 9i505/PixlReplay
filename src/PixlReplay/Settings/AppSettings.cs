@@ -58,6 +58,8 @@ public sealed class AppSettings
 
         Capture.MonitorId ??= "";
         Capture.Window ??= "";
+        Capture.ExtraMonitors = (Capture.ExtraMonitors ?? []).Where(id => !string.IsNullOrWhiteSpace(id)).Distinct()
+            .Take(Engine.CapturePipeline.MaxExtraScreens).ToList();
 
         Video.Fps = Math.Clamp(Video.Fps, 10, 240);
         Video.CustomCq = Math.Clamp(Video.CustomCq, 1, 63);
@@ -102,6 +104,11 @@ public sealed class CaptureSettings
     public string Window { get; set; } = "";
     public bool GameFallbackToScreen { get; set; } = true;
     public bool CaptureCursor { get; set; } = true;
+    /// <summary>
+    /// More screens (libobs monitor ids) recorded beside the main picture: each save, quick save or recording also makes a
+    /// file of each of them. Empty: only the main picture.
+    /// </summary>
+    public List<string> ExtraMonitors { get; set; } = [];
 }
 
 public sealed class VideoSettings

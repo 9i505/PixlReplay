@@ -105,6 +105,14 @@ public static class ClipOrganizer
         return perAppFolders ? Path.Combine(root, app, file) : Path.Combine(root, file);
     }
 
+    /// <summary>
+    /// The file of one screen when several are recorded: the same name with the screen added
+    /// ("Desktop 2026-10-22 13-20-00 - Screen 2.mp4", in the app's language).
+    /// </summary>
+    public static string ForScreen(string path, int screen) =>
+        Path.Combine(Path.GetDirectoryName(path)!,
+            $"{Path.GetFileNameWithoutExtension(path)} - {Sanitize(App.Text.Format("clip.screen", screen))}{Path.GetExtension(path)}");
+
     /// <summary>A picture (a screenshot) rather than a video, by its extension.</summary>
     public static bool IsPicture(string path) => ClipLibrary.KindOf(path) == ClipKind.Picture;
 

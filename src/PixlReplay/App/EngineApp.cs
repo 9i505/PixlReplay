@@ -242,7 +242,7 @@ public sealed class EngineApp : ApplicationContext
         try
         {
             var p = new CapturePipeline(_settings, voice: _voice);
-            p.ReplaySaved += (path, _) => _ui.BeginInvoke(() => OnClipSaved(path));
+            p.ReplaySaved += (path, _, screen) => _ui.BeginInvoke(() => OnClipSaved(path, screen));
             p.RecordingStopped += (path, seconds) => _ui.BeginInvoke(() => OnRecordingStopped(path, seconds));
             p.Build();
             _pipeline = p;
@@ -320,6 +320,9 @@ public sealed class EngineApp : ApplicationContext
         _pendingByVoice = byVoice;
         _pendingSeconds = quick ? _settings.Replay.QuickSeconds : _pipeline.GetStatus().BufferSeconds;
         _pendingApp = CapturedApp();
+        // Every screen's file of this save is named with the same moment.
+        _pendingTime = DateTime.Now;
+        _undoScreens.Clear();
         var request = _pipeline.RequestSave(quick);
         if (request != SaveWatch.Request.Started)
             ObsLog.Info($"save not started: {request} (active={_pipeline.BufferActive})");
@@ -339,19 +342,40 @@ public sealed class EngineApp : ApplicationContext
         ? ForegroundApp.ForExe(exe)
         : ForegroundApp.Current();
 
-    void OnClipSaved(string rawPath)
+    DateTime? _pendingTime;
+
+    /// <summary>The extra screens' files of the last save, sent to the Recycle Bin with it by the tray's undo.</summary>
+    readonly List<string> _undoScreens = [];
+
+    /// <summary>
+    /// A path for the main picture's file: with several screens recorded, it says which screen it is too, as the extra
+    /// screens' files do.
+    /// </summary>
+    string MainScreenPath(string target) =>
+        _pipeline is { MainScreen: { } main } p && p.ExtraScreens.Count > 0 ? ClipOrganizer.ForScreen(target, main) : target;
+
+    /// <param name="screen">0 for the main picture; else an extra screen's number (its file is put away quietly).</param>
+    void OnClipSaved(string rawPath, int screen = 0)
     {
         string app = _pendingApp ?? ClipOrganizer.AppFolderName(null, null, null);
         string final = rawPath;
         try
         {
             string target = ClipOrganizer.TargetPath(_pipeline?.ClipsFolder ?? Path.GetDirectoryName(rawPath)!, app,
-                DateTime.Now, _settings.Output.PerAppFolders);
+                _pendingTime ?? DateTime.Now, _settings.Output.PerAppFolders);
+            target = screen > 0 ? ClipOrganizer.ForScreen(target, screen) : MainScreenPath(target);
             final = ClipOrganizer.Move(rawPath, target);
         }
         catch (Exception e)
         {
             ObsLog.Warn($"could not move clip: {e.Message}");
+        }
+        if (screen > 0)
+        {
+            Index(final);
+            _undoScreens.Add(final);
+            ObsLog.Info($"clip of screen {screen} saved: {final}");
+            return;
         }
         _lastClip = final;
         _lastSaved = final;
@@ -369,9 +393,12 @@ public sealed class EngineApp : ApplicationContext
         _tray.FlashSaved();
         if (_settings.General.SoundOnSave)
             PlayChime();
+        int screens = _pipeline?.ExtraScreens.Count ?? 0;
         if (_settings.General.ToastOnSave)
             _toast.Show(Text.Get("toast.saved"),
-                $"{app} • {Text.Duration(_pendingSeconds)}" + (_pendingByVoice ? " • " + Text.Get("toast.byVoice") : ""), Text.IsRightToLeft);
+                $"{app} • {Text.Duration(_pendingSeconds)}"
+                + (screens > 0 ? " • " + Text.Count("count.screens", screens + 1) : "")
+                + (_pendingByVoice ? " • " + Text.Get("toast.byVoice") : ""), Text.IsRightToLeft);
         RefreshTray();
         EnforceFolderLimit();
         if (_saveWatch.ShouldWarnLowDisk(free, DateTime.UtcNow))
@@ -481,6 +508,11 @@ public sealed class EngineApp : ApplicationContext
             {
                 ClipDeleter.Recycle(clip);
                 ObsLog.Info($"deleted from the tray: {clip}");
+                // The same save's other screens go with it.
+                if (clip == _lastClip)
+                    foreach (string other in _undoScreens.Where(File.Exists))
+                        ClipDeleter.Recycle(other);
+                _undoScreens.Clear();
                 if (_lastClip == clip)
                     _lastClip = _pipeline != null ? NewestClip(_pipeline.ClipsFolder) : null;
                 if (_lastShot == clip)
@@ -534,6 +566,7 @@ public sealed class EngineApp : ApplicationContext
         {
             // Like a clip: in the folder of what is being recorded (Desktop, or the game), named with the time it starts.
             _recordingApp = CapturedApp() ?? ClipOrganizer.AppFolderName(null, null, null);
+            // The pipeline adds each screen's number when several are recorded.
             target = ClipOrganizer.FreePath(ClipOrganizer.TargetPath(p.ClipsFolder, _recordingApp, DateTime.Now, _settings.Output.PerAppFolders));
         }
         bool now = p.ToggleRecording(target);

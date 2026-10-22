@@ -572,5 +572,12 @@
   "look.theme.violet": "Фиалка",
   "look.theme.rose": "Роза",
   "look.theme.gold": "Золото",
-  "look.theme.light": "Светлая"
+  "look.theme.light": "Светлая",
+  "clip.screen": "Экран {0}",
+  "count.screens.one": "{0} экран",
+  "count.screens.few": "{0} экрана",
+  "count.screens.many": "{0} экранов",
+  "capture.cardExtra": "Другие экраны",
+  "capture.extraTip": "Каждое сохранение даёт клип и с каждого экрана здесь",
+  "capture.extraNone": "Подключён только один экран"
 }

@@ -567,5 +567,11 @@
   "look.theme.violet": "Violeta",
   "look.theme.rose": "Rosa",
   "look.theme.gold": "Ouro",
-  "look.theme.light": "Claro"
+  "look.theme.light": "Claro",
+  "clip.screen": "Tela {0}",
+  "count.screens.one": "{0} tela",
+  "count.screens.other": "{0} telas",
+  "capture.cardExtra": "Mais telas",
+  "capture.extraTip": "Cada salvamento também faz um clipe de cada tela ligada aqui",
+  "capture.extraNone": "Só há uma tela conectada"
 }

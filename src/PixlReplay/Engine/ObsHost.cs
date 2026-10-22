@@ -113,8 +113,18 @@ public static partial class ObsHost
     /// <summary>Resets the video pipeline. Every output must be stopped first.</summary>
     public static bool ResetVideo(VideoConfig v)
     {
+        var ovi = VideoInfo(v);
+        int rc = Obs.obs_reset_video(ref ovi);
+        if (rc != ObsConst.VideoSuccess)
+            ObsLog.Error($"obs_reset_video returned {rc} for {v}");
+        return rc == ObsConst.VideoSuccess;
+    }
+
+    /// <summary>libobs' video settings for <paramref name="v"/>: the main picture's, or an extra screen's view.</summary>
+    public static ObsVideoInfo VideoInfo(VideoConfig v)
+    {
         bool downscale = v.OutW < v.BaseW || v.OutH < v.BaseH;
-        var ovi = new ObsVideoInfo
+        return new ObsVideoInfo
         {
             GraphicsModule = GraphicsModule,
             FpsNum = (uint)v.Fps,
@@ -130,10 +140,6 @@ public static partial class ObsHost
             Range = ObsConst.VideoRangePartial,
             ScaleType = downscale ? ObsConst.ScaleArea : ObsConst.ScaleBicubic,
         };
-        int rc = Obs.obs_reset_video(ref ovi);
-        if (rc != ObsConst.VideoSuccess)
-            ObsLog.Error($"obs_reset_video returned {rc} for {v}");
-        return rc == ObsConst.VideoSuccess;
     }
 
     /// <summary>

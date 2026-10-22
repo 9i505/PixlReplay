@@ -582,5 +582,14 @@
   "look.theme.violet": "بنفسجي",
   "look.theme.rose": "وردي",
   "look.theme.gold": "ذهبي",
-  "look.theme.light": "فاتح"
+  "look.theme.light": "فاتح",
+  "clip.screen": "الشاشة {0}",
+  "count.screens.one": "شاشة واحدة",
+  "count.screens.two": "شاشتين",
+  "count.screens.few": "{0} شاشات",
+  "count.screens.many": "{0} شاشة",
+  "count.screens.other": "{0} شاشة",
+  "capture.cardExtra": "شاشات إضافية",
+  "capture.extraTip": "كل حفظ يحفظ أيضًا مقطعًا لكل شاشة تشغّلها هنا",
+  "capture.extraNone": "شاشة واحدة فقط موصولة"
 }

@@ -86,6 +86,32 @@
             </StackPanel>
         </Border>
 
+        <!-- More screens: each ticked one is recorded too, and every save makes a clip of each -->
+        <Border Style="{StaticResource Card}">
+            <StackPanel>
+                <TextBlock Style="{StaticResource CardTitle}" Text="{l:T capture.cardExtra}" Margin="0,0,0,2"/>
+                <TextBlock Style="{StaticResource Caption}" Text="{l:T capture.extraTip}" Margin="0,0,0,10"/>
+                <ItemsControl ItemsSource="{Binding ExtraScreenChoices}" Focusable="False"
+                              Visibility="{Binding HasOtherScreens, Converter={StaticResource Vis}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource Label}" Text="{Binding Label}" Margin="0,0,16,0" TextTrimming="CharacterEllipsis"/>
+                                <CheckBox Grid.Column="1" Style="{StaticResource Switch}" IsChecked="{Binding IsChecked}" IsEnabled="{Binding IsEnabled}"
+                                          AutomationProperties.Name="{Binding Label}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Style="{StaticResource Label}" Text="{l:T capture.extraNone}" Foreground="{DynamicResource TextSecondary}"
+                           Visibility="{Binding HasOtherScreens, Converter={StaticResource Vis}, ConverterParameter=invert}"/>
+            </StackPanel>
+        </Border>
+
         <Border Style="{StaticResource Card}">
             <StackPanel>
                 <!-- Off: nothing is kept in the background; full recordings still work (a plain recorder) -->

@@ -562,5 +562,10 @@
   "look.theme.violet": "紫罗兰",
   "look.theme.rose": "玫瑰",
   "look.theme.gold": "金色",
-  "look.theme.light": "浅色"
+  "look.theme.light": "浅色",
+  "clip.screen": "屏幕 {0}",
+  "count.screens.other": "{0} 个屏幕",
+  "capture.cardExtra": "更多屏幕",
+  "capture.extraTip": "每次保存时，这里打开的每个屏幕也各存一段",
+  "capture.extraNone": "只连接了一个屏幕"
 }

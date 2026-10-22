@@ -567,5 +567,11 @@
   "look.theme.violet": "Violeta",
   "look.theme.rose": "Rosa",
   "look.theme.gold": "Oro",
-  "look.theme.light": "Claro"
+  "look.theme.light": "Claro",
+  "clip.screen": "Pantalla {0}",
+  "count.screens.one": "{0} pantalla",
+  "count.screens.other": "{0} pantallas",
+  "capture.cardExtra": "Más pantallas",
+  "capture.extraTip": "Cada guardado hace también un clip de cada pantalla de aquí",
+  "capture.extraNone": "Solo hay una pantalla conectada"
 }

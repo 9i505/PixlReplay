@@ -164,6 +164,16 @@ public static class Obs
     [DllImport(Lib, CallingConvention = Cc)] public static extern void obs_sceneitem_set_bounds_alignment(IntPtr item, uint alignment);
     [DllImport(Lib, CallingConvention = Cc)] public static extern void obs_sceneitem_set_bounds(IntPtr item, ref Vec2 bounds);
     [DllImport(Lib, CallingConvention = Cc)] public static extern void obs_sceneitem_set_pos(IntPtr item, ref Vec2 pos);
+    /// <summary>A scene of its own (not on the main canvas): an extra screen's picture.</summary>
+    [DllImport(Lib, CallingConvention = Cc)] public static extern IntPtr obs_scene_create_private([MarshalAs(U8)] string name);
+
+    // Views: a second picture beside the main one, mixed at its own size (an extra screen's)
+    [DllImport(Lib, CallingConvention = Cc)] public static extern IntPtr obs_view_create();
+    [DllImport(Lib, CallingConvention = Cc)] public static extern void obs_view_set_source(IntPtr view, uint channel, IntPtr source);
+    /// <summary>Starts mixing the view at <paramref name="ovi"/>'s sizes; returns its video (for encoders), or zero.</summary>
+    [DllImport(Lib, CallingConvention = Cc)] public static extern IntPtr obs_view_add2(IntPtr view, ref ObsVideoInfo ovi);
+    [DllImport(Lib, CallingConvention = Cc)] public static extern void obs_view_remove(IntPtr view);
+    [DllImport(Lib, CallingConvention = Cc)] public static extern void obs_view_destroy(IntPtr view);
 
     // Encoders
     [DllImport(Lib, CallingConvention = Cc)]

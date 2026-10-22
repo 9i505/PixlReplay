@@ -52,15 +52,54 @@ public sealed class CapturePipeline : IDisposable
     public bool RecordingPaused => Recording && Obs.obs_output_paused(_record);
     readonly RecordingClock _recordClock = new();
 
-    /// <summary>Raised on a libobs thread with the raw file path and whether it was the quick buffer.</summary>
-    public event Action<string, bool>? ReplaySaved;
+    /// <summary>
+    /// Raised on a libobs thread with the raw file path, whether it was the quick buffer, and which picture it holds:
+    /// 0 for the main one, else the extra screen's number.
+    /// </summary>
+    public event Action<string, bool, int>? ReplaySaved;
+
+    /// <summary>
+    /// An extra screen recorded beside the main picture (Capture page, "Also record"): its own capture and scene, mixed at
+    /// its own size in a libobs view, with its own video encoder and buffers. The sound is the main picture's (the same
+    /// audio encoders), so every screen's clip has it. A save, a quick save or a recording makes one file per screen.
+    /// </summary>
+    sealed class ExtraScreen(int number, MonitorInfo monitor)
+    {
+        public int Number => number;
+        public MonitorInfo Monitor => monitor;
+        public (int W, int H) Output;
+        public EncoderPlan? Plan;
+        public IntPtr Scene, View, Video, Encoder, Replay, Quick, Record;
+        public ObsSignalCallback? OnReplaySaved, OnQuickSaved;
+    }
+
+    readonly List<ExtraScreen> _extras = [];
+
+    /// <summary>The main picture's screen number (as the Capture page counts them) when it is a screen, else null.</summary>
+    public int? MainScreen { get; private set; }
+
+    /// <summary>The extra screens being recorded (their numbers), beside the main picture.</summary>
+    public IReadOnlyList<int> ExtraScreens => _extras.Select(e => e.Number).ToList();
+
+    /// <summary>The screens' number as the Capture page shows them: their place in libobs' list, from 1.</summary>
+    public static int ScreenNumber(IReadOnlyList<MonitorInfo> monitors, string id) =>
+        monitors.Select((m, i) => (m, i)).FirstOrDefault(p => p.m.Id == id) is { m: not null } found ? found.i + 1 : 0;
+
+    /// <summary>The most extra screens recorded at once (each takes an encoder and its own buffer in memory).</summary>
+    public const int MaxExtraScreens = 3;
 
     /// <summary>Raised on a libobs thread with the finished recording's path and its length without pauses.</summary>
     public event Action<string, double>? RecordingStopped;
 
     public void Build()
     {
-        var monitor = VideoMath.PickMonitor(ObsHost.Monitors(), _s.Capture.MonitorId);
+        var monitors = ObsHost.Monitors();
+        var monitor = VideoMath.PickMonitor(monitors, _s.Capture.MonitorId);
+        MainScreen = _s.Capture.Mode == CaptureMode.Screen && monitor != null ? ScreenNumber(monitors, monitor.Id) : null;
+        // The extra screens still connected, never the one the main picture already shows.
+        foreach (string id in _s.Capture.ExtraMonitors.Distinct().Take(MaxExtraScreens))
+            if (monitors.FirstOrDefault(m => m.Id == id) is { } extra && !(MainScreen != null && extra.Id == monitor!.Id))
+                _extras.Add(new ExtraScreen(ScreenNumber(monitors, extra.Id), extra));
         int baseW = monitor?.Width ?? 1920, baseH = monitor?.Height ?? 1080;
         Base = (baseW, baseH);
         var ids = ObsHost.EncoderIds();
@@ -78,19 +117,98 @@ public sealed class CapturePipeline : IDisposable
         BuildScene(monitor?.Id ?? "", baseW, baseH);
         BuildAudio();
         BuildEncoders();
-        _replay = CreateReplayOutput("PixlReplay replay", "PixlReplay %CCYY-%MM-%DD %hh-%mm-%ss", _s.Replay.Seconds);
+        _replay = CreateReplayOutput("PixlReplay replay", "PixlReplay %CCYY-%MM-%DD %hh-%mm-%ss", _s.Replay.Seconds, _videoEncoder, Plan!);
         _onReplaySaved = (_, _) => OnSaved(_replay, quick: false);
         Obs.signal_handler_connect(Obs.obs_output_get_signal_handler(_replay), "saved", _onReplaySaved, IntPtr.Zero);
 
         if (_s.Replay.QuickEnabled)
         {
-            _quick = CreateReplayOutput("PixlReplay quick", "PixlReplay quick %CCYY-%MM-%DD %hh-%mm-%ss", _s.Replay.QuickSeconds);
+            _quick = CreateReplayOutput("PixlReplay quick", "PixlReplay quick %CCYY-%MM-%DD %hh-%mm-%ss", _s.Replay.QuickSeconds, _videoEncoder, Plan!);
             _onQuickSaved = (_, _) => OnSaved(_quick, quick: true);
             Obs.signal_handler_connect(Obs.obs_output_get_signal_handler(_quick), "saved", _onQuickSaved, IntPtr.Zero);
         }
 
         ObsLog.Info($"pipeline built: mode={_s.Capture.Mode} {baseW}x{baseH} -> {Output.W}x{Output.H}@{Fps} " +
                     $"{Choice.Id} cq={Plan!.Cq} max={Plan.MaxBitrateKbps}kbps folder={ClipsFolder}");
+
+        foreach (var extra in _extras.ToList())
+        {
+            try
+            {
+                BuildExtra(extra);
+                ObsLog.Info($"extra screen {extra.Number} built: {extra.Monitor.Width}x{extra.Monitor.Height} -> " +
+                            $"{extra.Output.W}x{extra.Output.H}@{Fps} max={extra.Plan!.MaxBitrateKbps}kbps");
+            }
+            catch (Exception e)
+            {
+                // One screen that cannot be recorded (no encoder left, the screen gone) never stops the main one.
+                ObsLog.Warn($"extra screen {extra.Number} not recorded: {e.Message}");
+                ReleaseExtra(extra);
+                _extras.Remove(extra);
+            }
+        }
+    }
+
+    /// <summary>An extra screen's capture, its picture mixed at its own size, its encoder and its buffers.</summary>
+    void BuildExtra(ExtraScreen x)
+    {
+        var m = x.Monitor;
+        x.Output = VideoMath.OutputSize(m.Width, m.Height, _s.Video.Resolution);
+        if (Choice!.Vendor == EncoderVendor.Software)
+            x.Output = EncoderCatalog.LimitForSoftware(x.Output, Fps).Item1;
+
+        x.Scene = Obs.obs_scene_create_private($"PixlReplay screen {x.Number}");
+        IntPtr source = CreateMonitorSource(m.Id, $"Screen {x.Number}");
+        AddToScene(x.Scene, source, m.Width, m.Height);
+        x.View = Obs.obs_view_create();
+        Obs.obs_view_set_source(x.View, 0, Obs.obs_scene_get_source(x.Scene));
+        var ovi = ObsHost.VideoInfo(new VideoConfig(m.Width, m.Height, x.Output.W, x.Output.H, Fps));
+        x.Video = Obs.obs_view_add2(x.View, ref ovi);
+        if (x.Video == IntPtr.Zero)
+            throw new InvalidOperationException("libobs could not mix this screen's picture");
+
+        x.Plan = EncoderPresets.Plan(Choice.Codec, _s.Video.Quality, x.Output.W, x.Output.H, Fps,
+            _s.Video.CustomCq, _s.Video.CustomMbps, Choice.Vendor != EncoderVendor.Software, _s.Video.Preset);
+        x.Encoder = CreateVideoEncoder(x.Plan, $"PixlReplay video {x.Number}");
+        Obs.obs_encoder_set_video(x.Encoder, x.Video);
+
+        x.Replay = CreateReplayOutput($"PixlReplay replay {x.Number}", $"PixlReplay screen {x.Number} %CCYY-%MM-%DD %hh-%mm-%ss",
+            _s.Replay.Seconds, x.Encoder, x.Plan);
+        x.OnReplaySaved = (_, _) => OnSaved(x.Replay, quick: false, x.Number);
+        Obs.signal_handler_connect(Obs.obs_output_get_signal_handler(x.Replay), "saved", x.OnReplaySaved, IntPtr.Zero);
+        if (_s.Replay.QuickEnabled)
+        {
+            x.Quick = CreateReplayOutput($"PixlReplay quick {x.Number}", $"PixlReplay screen {x.Number} quick %CCYY-%MM-%DD %hh-%mm-%ss",
+                _s.Replay.QuickSeconds, x.Encoder, x.Plan);
+            x.OnQuickSaved = (_, _) => OnSaved(x.Quick, quick: true, x.Number);
+            Obs.signal_handler_connect(Obs.obs_output_get_signal_handler(x.Quick), "saved", x.OnQuickSaved, IntPtr.Zero);
+        }
+    }
+
+    /// <summary>Takes an extra screen apart: its outputs, encoder and view first, then its scene (the sources go with the rest).</summary>
+    static void ReleaseExtra(ExtraScreen x)
+    {
+        ReleaseRecord(ref x.Record, null);
+        ReleaseReplay(ref x.Quick, x.OnQuickSaved);
+        ReleaseReplay(ref x.Replay, x.OnReplaySaved);
+        if (x.Encoder != IntPtr.Zero)
+            Obs.obs_encoder_release(x.Encoder);
+        x.Encoder = IntPtr.Zero;
+        if (x.View != IntPtr.Zero)
+        {
+            if (x.Video != IntPtr.Zero)
+                Obs.obs_view_remove(x.View);
+            Obs.obs_view_set_source(x.View, 0, IntPtr.Zero);
+            Obs.obs_view_destroy(x.View);
+        }
+        x.View = x.Video = IntPtr.Zero;
+        if (x.Scene != IntPtr.Zero)
+        {
+            // libobs 32 puts even a private scene on the main canvas: taken off it, it is freed (as the main scene is).
+            Obs.obs_source_remove(Obs.obs_scene_get_source(x.Scene));
+            Obs.obs_scene_release(x.Scene);
+        }
+        x.Scene = IntPtr.Zero;
     }
 
     void BuildScene(string monitorId, int baseW, int baseH)
@@ -102,19 +220,19 @@ public sealed class CapturePipeline : IDisposable
                 using (var d = new ObsData()
                            .Set("window", _s.Capture.Window).Set("priority", 2L).Set("method", 2L)
                            .Set("cursor", _s.Capture.CaptureCursor).Set("client_area", true))
-                    AddToScene(CreateSource("window_capture", "Window", d), baseW, baseH);
+                    AddToScene(_scene, CreateSource("window_capture", "Window", d), baseW, baseH);
                 break;
 
             case CaptureMode.Game:
                 if (_s.Capture.GameFallbackToScreen)
-                    AddToScene(CreateMonitorSource(monitorId), baseW, baseH);
+                    AddToScene(_scene, CreateMonitorSource(monitorId), baseW, baseH);
                 using (var d = new ObsData()
                            .Set("capture_mode", "any_fullscreen").Set("capture_cursor", _s.Capture.CaptureCursor)
                            .Set("anti_cheat_hook", true).Set("capture_overlays", false)
                            .Set("capture_audio", _s.Audio.SourceAudioOnly))
                 {
                     IntPtr game = CreateSource("game_capture", "Game", d);
-                    AddToScene(game, baseW, baseH);
+                    AddToScene(_scene, game, baseW, baseH);
                     if (_s.Audio.SourceAudioOnly)
                     {
                         ConfigureAudio(game, SystemMixers(), _s.Audio.SystemVolume);
@@ -125,19 +243,19 @@ public sealed class CapturePipeline : IDisposable
                 break;
 
             default:
-                AddToScene(CreateMonitorSource(monitorId), baseW, baseH);
+                AddToScene(_scene, CreateMonitorSource(monitorId), baseW, baseH);
                 break;
         }
         Obs.obs_set_output_source(ChannelVideo, Obs.obs_scene_get_source(_scene));
     }
 
-    IntPtr CreateMonitorSource(string monitorId)
+    IntPtr CreateMonitorSource(string monitorId, string name = "Screen")
     {
         // PixlReplay records SDR (NV12, Rec. 709): with Force SDR Windows hands an HDR screen over already in SDR, where the
         // HDR copy recorded black on some HDR monitors (a 4K HDR screen, DXGI, 2026-10-18).
         using var d = new ObsData().Set("monitor_id", monitorId).Set("method", 0L).Set("capture_cursor", _s.Capture.CaptureCursor)
             .Set("force_sdr", true);
-        return CreateSource("monitor_capture", "Screen", d);
+        return CreateSource("monitor_capture", name, d);
     }
 
     void BuildAudio()
@@ -239,24 +357,7 @@ public sealed class CapturePipeline : IDisposable
         var choice = Choice!;
         Plan = EncoderPresets.Plan(choice.Codec, _s.Video.Quality, Output.W, Output.H, Fps,
             _s.Video.CustomCq, _s.Video.CustomMbps, choice.Vendor != EncoderVendor.Software, _s.Video.Preset);
-
-        using (var d = new ObsData())
-        {
-            foreach (var (key, value) in EncoderCatalog.Settings(Plan, choice))
-            {
-                switch (value)
-                {
-                    case string str: d.Set(key, str); break;
-                    case long n: d.Set(key, n); break;
-                    case bool b: d.Set(key, b); break;
-                }
-            }
-            if (choice.Codec == VideoCodec.Hevc)
-                d.Set("codec_type", Hvc1Tag);
-            _videoEncoder = Obs.obs_video_encoder_create(choice.Id, "PixlReplay video", d.Handle, IntPtr.Zero);
-        }
-        if (_videoEncoder == IntPtr.Zero)
-            throw new InvalidOperationException($"Could not create encoder {choice.Id}");
+        _videoEncoder = CreateVideoEncoder(Plan, "PixlReplay video");
         Obs.obs_encoder_set_video(_videoEncoder, Obs.obs_get_video());
 
         foreach (int mixer in AudioMixerIndexes())
@@ -268,6 +369,31 @@ public sealed class CapturePipeline : IDisposable
             Obs.obs_encoder_set_audio(enc, Obs.obs_get_audio());
             _audioEncoders.Add(enc);
         }
+    }
+
+    /// <summary>A video encoder of the chosen kind with <paramref name="plan"/>'s settings (the main picture's or a screen's).</summary>
+    IntPtr CreateVideoEncoder(EncoderPlan plan, string name)
+    {
+        var choice = Choice!;
+        IntPtr encoder;
+        using (var d = new ObsData())
+        {
+            foreach (var (key, value) in EncoderCatalog.Settings(plan, choice))
+            {
+                switch (value)
+                {
+                    case string str: d.Set(key, str); break;
+                    case long n: d.Set(key, n); break;
+                    case bool b: d.Set(key, b); break;
+                }
+            }
+            if (choice.Codec == VideoCodec.Hevc)
+                d.Set("codec_type", Hvc1Tag);
+            encoder = Obs.obs_video_encoder_create(choice.Id, name, d.Handle, IntPtr.Zero);
+        }
+        if (encoder == IntPtr.Zero)
+            throw new InvalidOperationException($"Could not create encoder {choice.Id}");
+        return encoder;
     }
 
     /// <summary>Track 1 is the full mix; with separate tracks, 2 is system/app audio and 3 is your voice (the mic).</summary>
@@ -282,22 +408,24 @@ public sealed class CapturePipeline : IDisposable
             yield return 2;
     }
 
-    IntPtr CreateReplayOutput(string name, string format, int seconds)
+    IntPtr CreateReplayOutput(string name, string format, int seconds, IntPtr videoEncoder, EncoderPlan plan)
     {
-        int sizeMb = BufferBudget.CapMb(EncoderPresets.EstimateBufferMb(Plan!.MaxBitrateKbps, seconds), BufferBudget.PhysicalMemoryBytes);
+        // Every screen keeps a buffer: together they stay within the memory one would have.
+        long memory = BufferBudget.PhysicalMemoryBytes / (1 + _extras.Count);
+        int sizeMb = BufferBudget.CapMb(EncoderPresets.EstimateBufferMb(plan.MaxBitrateKbps, seconds), memory);
         using var d = new ObsData()
             .Set("directory", ClipsFolder).Set("format", format).Set("extension", "mp4").Set("allow_spaces", true)
             .Set("max_time_sec", (long)seconds).Set("max_size_mb", (long)sizeMb);
         IntPtr output = Obs.obs_output_create("replay_buffer", name, d.Handle, IntPtr.Zero);
         if (output == IntPtr.Zero)
             throw new InvalidOperationException("Could not create the replay buffer");
-        AttachEncoders(output);
+        AttachEncoders(output, videoEncoder);
         return output;
     }
 
-    void AttachEncoders(IntPtr output)
+    void AttachEncoders(IntPtr output, IntPtr videoEncoder)
     {
-        Obs.obs_output_set_video_encoder(output, _videoEncoder);
+        Obs.obs_output_set_video_encoder(output, videoEncoder);
         for (int i = 0; i < _audioEncoders.Count; i++)
             Obs.obs_output_set_audio_encoder(output, _audioEncoders[i], (nuint)i);
     }
@@ -311,9 +439,9 @@ public sealed class CapturePipeline : IDisposable
         return source;
     }
 
-    void AddToScene(IntPtr source, int w, int h)
+    static void AddToScene(IntPtr scene, IntPtr source, int w, int h)
     {
-        IntPtr item = Obs.obs_scene_add(_scene, source);
+        IntPtr item = Obs.obs_scene_add(scene, source);
         Obs.obs_sceneitem_set_bounds_type(item, ObsConst.BoundsScaleInner);
         Obs.obs_sceneitem_set_bounds_alignment(item, ObsConst.AlignCenter);
         var bounds = new Vec2(w, h);
@@ -332,6 +460,12 @@ public sealed class CapturePipeline : IDisposable
             Obs.obs_output_stop(_replay);
             if (_quick != IntPtr.Zero)
                 Obs.obs_output_stop(_quick);
+            foreach (var x in _extras)
+            {
+                Obs.obs_output_stop(x.Replay);
+                if (x.Quick != IntPtr.Zero)
+                    Obs.obs_output_stop(x.Quick);
+            }
             return false;
         }
 
@@ -343,6 +477,13 @@ public sealed class CapturePipeline : IDisposable
         }
         if (_quick != IntPtr.Zero && !Obs.obs_output_start(_quick))
             ObsLog.Warn("quick buffer could not start");
+        foreach (var x in _extras)
+        {
+            if (!Obs.obs_output_start(x.Replay))
+                ObsLog.Warn($"screen {x.Number}: buffer could not start: {Obs.Utf8(Obs.obs_output_get_last_error(x.Replay))}");
+            if (x.Quick != IntPtr.Zero && !Obs.obs_output_start(x.Quick))
+                ObsLog.Warn($"screen {x.Number}: quick buffer could not start");
+        }
         LastError = null;
         _bufferStartedUtc = DateTime.UtcNow;
         return true;
@@ -370,15 +511,26 @@ public sealed class CapturePipeline : IDisposable
 
         _saving = true;
         _saveRequestedUtc = now;
-        var cd = new CallData();
-        bool ok = Obs.proc_handler_call(Obs.obs_output_get_proc_handler(output), "save", ref cd);
-        Obs.FreeCallData(ref cd);
+        bool ok = CallSave(output);
         if (!ok)
             _saving = false;
+        else
+            // The extra screens save the same moment, each into its own file.
+            foreach (var x in _extras)
+                if ((quick ? x.Quick : x.Replay) is var extra && extra != IntPtr.Zero && Obs.obs_output_active(extra) && !CallSave(extra))
+                    ObsLog.Warn($"screen {x.Number}: save refused");
         return ok ? SaveWatch.Request.Started : SaveWatch.Request.Off;
     }
 
-    void OnSaved(IntPtr output, bool quick)
+    static bool CallSave(IntPtr output)
+    {
+        var cd = new CallData();
+        bool ok = Obs.proc_handler_call(Obs.obs_output_get_proc_handler(output), "save", ref cd);
+        Obs.FreeCallData(ref cd);
+        return ok;
+    }
+
+    void OnSaved(IntPtr output, bool quick, int screen = 0)
     {
         string? path = null;
         var cd = new CallData();
@@ -386,9 +538,10 @@ public sealed class CapturePipeline : IDisposable
             Obs.calldata_get_string(ref cd, "path", out IntPtr p))
             path = Obs.Utf8(p);
         Obs.FreeCallData(ref cd);
-        _saving = false;
+        if (screen == 0)
+            _saving = false;
         if (path != null)
-            ReplaySaved?.Invoke(path.Replace('/', '\\'), quick);
+            ReplaySaved?.Invoke(path.Replace('/', '\\'), quick, screen);
     }
 
     /// <summary>
@@ -401,15 +554,18 @@ public sealed class CapturePipeline : IDisposable
         {
             _recordClock.Pause(DateTime.UtcNow); // its length is what was recorded, not the time the file takes to close
             Obs.obs_output_stop(_record);
+            foreach (var x in _extras)
+                if (x.Record != IntPtr.Zero && Obs.obs_output_active(x.Record))
+                    Obs.obs_output_stop(x.Record);
             return false;
         }
 
         ReleaseRecordOutput();
-        _recordPath = target ?? Path.Combine(ClipsFolder, "Recordings", $"Recording {DateTime.Now:yyyy-MM-dd HH-mm-ss}.mp4");
+        string baseName = target ?? Path.Combine(ClipsFolder, "Recordings", $"Recording {DateTime.Now:yyyy-MM-dd HH-mm-ss}.mp4");
+        // With extra screens every file says its screen, the main picture's too ("… - Screen 1.mp4").
+        _recordPath = _extras.Count > 0 && MainScreen is { } main ? ClipOrganizer.FreePath(ClipOrganizer.ForScreen(baseName, main)) : baseName;
         Directory.CreateDirectory(Path.GetDirectoryName(_recordPath)!);
-        using (var d = new ObsData().Set("path", _recordPath).Set("muxer_settings", "movflags=frag_keyframe+empty_moov+delay_moov"))
-            _record = Obs.obs_output_create("ffmpeg_muxer", "PixlReplay record", d.Handle, IntPtr.Zero);
-        AttachEncoders(_record);
+        _record = CreateRecordOutput(_recordPath, "PixlReplay record", _videoEncoder);
         string path = _recordPath;
         _onRecordStopped = (_, _) => RecordingStopped?.Invoke(path, _recordClock.Seconds(DateTime.UtcNow));
         Obs.signal_handler_connect(Obs.obs_output_get_signal_handler(_record), "stop", _onRecordStopped, IntPtr.Zero);
@@ -417,11 +573,32 @@ public sealed class CapturePipeline : IDisposable
         if (Obs.obs_output_start(_record))
         {
             _recordClock.Start(DateTime.UtcNow);
+            // Each extra screen into its own file beside the main one ("… - Screen 2.mp4").
+            foreach (var x in _extras)
+            {
+                string screenPath = ClipOrganizer.FreePath(ClipOrganizer.ForScreen(baseName, x.Number));
+                x.Record = CreateRecordOutput(screenPath, $"PixlReplay record {x.Number}", x.Encoder);
+                if (!Obs.obs_output_start(x.Record))
+                    ObsLog.Warn($"screen {x.Number}: recording could not start");
+                else
+                    ObsLog.Info($"screen {x.Number}: recording into {screenPath}");
+            }
             return true;
         }
         LastError = Obs.Utf8(Obs.obs_output_get_last_error(_record)) ?? "Recording could not start";
         ObsLog.Error($"record start failed: {LastError}");
         return false;
+    }
+
+    IntPtr CreateRecordOutput(string path, string name, IntPtr videoEncoder)
+    {
+        IntPtr output;
+        using (var d = new ObsData().Set("path", path).Set("muxer_settings", "movflags=frag_keyframe+empty_moov+delay_moov"))
+            output = Obs.obs_output_create("ffmpeg_muxer", name, d.Handle, IntPtr.Zero);
+        if (output == IntPtr.Zero)
+            throw new InvalidOperationException("Could not create the recording");
+        AttachEncoders(output, videoEncoder);
+        return output;
     }
 
     /// <summary>
@@ -438,6 +615,9 @@ public sealed class CapturePipeline : IDisposable
             ObsLog.Warn($"record {(pause ? "pause" : "resume")} refused");
             return false;
         }
+        foreach (var x in _extras)
+            if (x.Record != IntPtr.Zero && Obs.obs_output_active(x.Record) && !Obs.obs_output_pause(x.Record, pause))
+                ObsLog.Warn($"screen {x.Number}: record {(pause ? "pause" : "resume")} refused");
         if (pause)
             _recordClock.Pause(DateTime.UtcNow);
         else
@@ -475,18 +655,25 @@ public sealed class CapturePipeline : IDisposable
 
     void ReleaseRecordOutput()
     {
-        if (_record == IntPtr.Zero)
+        ReleaseRecord(ref _record, _onRecordStopped);
+        foreach (var x in _extras)
+            ReleaseRecord(ref x.Record, null);
+    }
+
+    static void ReleaseRecord(ref IntPtr record, ObsSignalCallback? onStopped)
+    {
+        if (record == IntPtr.Zero)
             return;
-        if (Obs.obs_output_active(_record))
+        if (Obs.obs_output_active(record))
         {
-            Obs.obs_output_stop(_record);
-            for (int i = 0; i < 50 && Obs.obs_output_active(_record); i++)
+            Obs.obs_output_stop(record);
+            for (int i = 0; i < 50 && Obs.obs_output_active(record); i++)
                 Thread.Sleep(100);
         }
-        if (_onRecordStopped != null)
-            Obs.signal_handler_disconnect(Obs.obs_output_get_signal_handler(_record), "stop", _onRecordStopped, IntPtr.Zero);
-        Obs.obs_output_release(_record);
-        _record = IntPtr.Zero;
+        if (onStopped != null)
+            Obs.signal_handler_disconnect(Obs.obs_output_get_signal_handler(record), "stop", onStopped, IntPtr.Zero);
+        Obs.obs_output_release(record);
+        record = IntPtr.Zero;
     }
 
     static void ReleaseReplay(ref IntPtr output, ObsSignalCallback? callback)
@@ -504,6 +691,9 @@ public sealed class CapturePipeline : IDisposable
     public void Teardown()
     {
         ReleaseRecordOutput();
+        foreach (var x in _extras)
+            ReleaseExtra(x);
+        _extras.Clear();
         ReleaseReplay(ref _quick, _onQuickSaved);
         ReleaseReplay(ref _replay, _onReplaySaved);
 
