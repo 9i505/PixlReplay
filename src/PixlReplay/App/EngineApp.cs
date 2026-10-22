@@ -324,6 +324,7 @@ public sealed class EngineApp : ApplicationContext
         _pendingTime = DateTime.Now;
         _undoScreens.Clear();
         var request = _pipeline.RequestSave(quick);
+        _saveRequested = DateTime.UtcNow;
         if (request != SaveWatch.Request.Started)
             ObsLog.Info($"save not started: {request} (active={_pipeline.BufferActive})");
         if (_saveWatch.Requested(request, DateTime.UtcNow, _pipeline.BufferBytes, offReason) is { } reason)
@@ -343,6 +344,8 @@ public sealed class EngineApp : ApplicationContext
         : ForegroundApp.Current();
 
     DateTime? _pendingTime;
+    /// <summary>When the last save was asked for: the log says how long writing it took.</summary>
+    DateTime _saveRequested;
 
     /// <summary>The extra screens' files of the last save, sent to the Recycle Bin with it by the tray's undo.</summary>
     readonly List<string> _undoScreens = [];
@@ -388,7 +391,8 @@ public sealed class EngineApp : ApplicationContext
             NotSaved(problem);
             return;
         }
-        ObsLog.Info($"clip saved{(_pendingByVoice ? " by voice" : "")}: {final}");
+        ObsLog.Info($"clip saved{(_pendingByVoice ? " by voice" : "")} in {(DateTime.UtcNow - _saveRequested).TotalSeconds:F1} s " +
+                    $"({bytes / (1024 * 1024)} MB): {final}");
 
         _tray.FlashSaved();
         if (_settings.General.SoundOnSave)

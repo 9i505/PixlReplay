@@ -7,7 +7,8 @@ namespace PixlReplay.Engine;
 
 public sealed record VideoConfig(int BaseW, int BaseH, int OutW, int OutH, int Fps);
 
-public sealed record MonitorInfo(string Id, string Name, int Width, int Height, bool Primary);
+/// <param name="RefreshHz">How many pictures a second the screen shows (0: not known).</param>
+public sealed record MonitorInfo(string Id, string Name, int Width, int Height, bool Primary, int RefreshHz = 0);
 
 /// <summary>Owns the process-wide libobs instance.</summary>
 public static partial class ObsHost
@@ -223,12 +224,18 @@ public static partial class ObsHost
             var m = SizePattern().Match(name);
             if (!m.Success || string.IsNullOrEmpty(id))
                 continue;
+            // libobs names the screen's place on the desktop ("@ -2560,4"): that finds its refresh rate in Windows.
+            var at = PositionPattern().Match(name);
+            int hz = at.Success ? DisplayRefresh.At(int.Parse(at.Groups[1].Value), int.Parse(at.Groups[2].Value)) : 0;
             list.Add(new MonitorInfo(id, name, int.Parse(m.Groups[1].Value), int.Parse(m.Groups[2].Value),
-                name.Contains("Primary", StringComparison.OrdinalIgnoreCase)));
+                name.Contains("Primary", StringComparison.OrdinalIgnoreCase), hz));
         }
         return list;
     }
 
     [GeneratedRegex(@"(\d{3,5})x(\d{3,5})")]
     private static partial Regex SizePattern();
+
+    [GeneratedRegex(@"@\s*(-?\d+),\s*(-?\d+)")]
+    private static partial Regex PositionPattern();
 }

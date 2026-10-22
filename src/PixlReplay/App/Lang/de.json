@@ -573,5 +573,6 @@
   "count.screens.other": "{0} Bildschirme",
   "capture.cardExtra": "Weitere Bildschirme",
   "capture.extraTip": "Jedes Speichern macht auch einen Clip jedes Bildschirms hier",
-  "capture.extraNone": "Nur ein Bildschirm ist angeschlossen"
+  "capture.extraNone": "Nur ein Bildschirm ist angeschlossen",
+  "quality.fpsScreen": "{0} fps • Maximum deines Bildschirms"
 }

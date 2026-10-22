@@ -21,37 +21,39 @@ public static class AppIconTests
     }
 
     [Test]
-    public static void The_mark_is_the_letter_with_the_play_mark_in_the_accent_on_the_plate()
+    public static void The_mark_is_a_white_letter_and_play_mark_on_an_accent_tile()
     {
         ThemeColors.Use(new LookSettings());
         using var mark = AppIconArt.Draw(256, 0xFF5A64);
         var play = At(256, new PointF(162, 131)); // inside the triangle
-        Assert.Equal(0xFF5A64u, Rgb(mark.GetPixel(play.X, play.Y)), "the play mark");
+        Assert.Equal(0xFFFFFFu, Rgb(mark.GetPixel(play.X, play.Y)), "the play mark");
         var stem = At(256, new PointF(47, 200));
-        Assert.Equal(ThemeColors.Text, Rgb(mark.GetPixel(stem.X, stem.Y)), "the letter in the text color");
+        Assert.Equal(0xFFFFFFu, Rgb(mark.GetPixel(stem.X, stem.Y)), "the letter");
         var counter = At(256, new PointF(120, 100)); // inside the bowl, left of the play mark
-        Assert.Equal(ThemeColors.Background, Rgb(mark.GetPixel(counter.X, counter.Y)), "the counter shows the plate");
-        Assert.Equal(ThemeColors.Background, Rgb(mark.GetPixel(128, 12)), "the plate: the window's own background");
+        Assert.Equal(0xFF5A64u, Rgb(mark.GetPixel(counter.X, counter.Y)), "the counter shows the tile");
+        Assert.Equal(0xFF5A64u, Rgb(mark.GetPixel(128, 12)), "the tile: the accent (Pixl's own icon has none)");
         Assert.Equal(0, (int)mark.GetPixel(0, 0).A, "rounded corner");
-        using var green = AppIconArt.Draw(256, 0x3DDC84);
-        Assert.Equal(0x3DDC84u, Rgb(green.GetPixel(play.X, play.Y)), "another accent");
+        using var yellow = AppIconArt.Draw(256, 0xFFC93C);
+        Assert.Equal(0x16161Au, Rgb(yellow.GetPixel(stem.X, stem.Y)), "a dark letter on a light accent");
     }
 
     [Test]
-    public static void The_tray_colors_the_letter_by_state()
+    public static void The_tray_tile_takes_the_state_color()
     {
         ThemeColors.Use(new LookSettings());
         foreach (string kind in new[] { "active", "waiting", "paused", "recording", "error", "saved" })
         {
             using var tray = TrayController.DrawBitmap(kind);
+            uint tile = TrayController.ColorFor(kind);
+            Assert.Equal(tile, Rgb(tray.GetPixel(16, 2)), $"tray '{kind}': the tile");
             // The stem, in the tray's 22 x 24 letter box at (5, 4).
             var stem = AppIconArt.Fit([new PointF(47, 150)], new RectangleF(5, 4, 22, 24))[0];
-            Assert.Equal(TrayController.ColorFor(kind), Rgb(tray.GetPixel((int)stem.X, (int)stem.Y)), $"tray '{kind}': the letter");
+            Assert.Equal(AppIconArt.InkOn(tile), Rgb(tray.GetPixel((int)stem.X, (int)stem.Y)), $"tray '{kind}': the letter");
         }
         using var recording = TrayController.DrawBitmap("recording");
-        Assert.Equal(TrayController.ColorFor("recording"), Rgb(recording.GetPixel(24, 24)), "recording: the dot");
+        Assert.Equal(0xFF3B30u, Rgb(recording.GetPixel(24, 24)), "recording: a red dot");
         using var paused = TrayController.DrawBitmap("paused");
-        Assert.Equal(ThemeColors.Background, Rgb(paused.GetPixel(24, 24)), "paused: between the two bars");
+        Assert.Equal(0xFFFFFFu, Rgb(paused.GetPixel(24, 19)), "paused: the white badge above the bars");
     }
 
     [Test]

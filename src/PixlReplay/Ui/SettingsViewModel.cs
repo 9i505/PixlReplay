@@ -381,6 +381,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
         Speakers = DeviceOptions(_caps?.Speakers);
         Mics = DeviceOptions(_caps?.Mics);
         RebuildResolutions();
+        RebuildFpsOptions();
     }
 
     (int W, int H) _resolutionsFor;
@@ -421,7 +422,12 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
 
     // ------------------------------------------------------------------ capture
 
-    public CaptureMode Mode { get => _s.Capture.Mode; set => Set(() => _s.Capture.Mode = value); }
+    public CaptureMode Mode
+    {
+        get => _s.Capture.Mode;
+        // A window can be on any screen: its frame rates follow the fastest one.
+        set => Set(() => { _s.Capture.Mode = value; RebuildFpsOptions(); });
+    }
 
     /// <summary>Shown selection: the saved monitor, or the one the engine will actually use (primary).</summary>
     public string MonitorId
@@ -433,7 +439,8 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
                 return;
             Set(() => _s.Capture.MonitorId = value);
             RebuildResolutions();
-            Raise(nameof(Resolutions), nameof(Resolution));
+            RebuildFpsOptions();
+            Raise(nameof(Resolutions), nameof(Resolution), nameof(FpsOptions), nameof(Fps));
         }
     }
 
@@ -504,7 +511,31 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
         set => Set(() => _s.Video.Resolution = value);
     }
 
-    public int Fps { get => _s.Video.Fps; set => Set(() => _s.Video.Fps = value); }
+    /// <summary>
+    /// The frame rate as it will be recorded: the saved one, held to what the captured screen shows (the engine does the
+    /// same), so the list and the estimate say what really happens.
+    /// </summary>
+    public int Fps { get => VideoMath.CaptureFps(_s.Video.Fps, ScreenRefresh); set => Set(() => _s.Video.Fps = value); }
+
+    /// <summary>The refresh rate the recording is held to (0 when the engine has not said yet).</summary>
+    int ScreenRefresh
+    {
+        get
+        {
+            var monitors = _caps?.Monitors ?? [];
+            return VideoMath.LimitingRefresh(monitors, VideoMath.PickMonitor(monitors, _s.Capture.MonitorId), _s.Capture.Mode);
+        }
+    }
+
+    /// <summary>The usual frame rates up to the screen's own, and the screen's own (165 Hz is not one of the usual).</summary>
+    void RebuildFpsOptions()
+    {
+        int max = ScreenRefresh;
+        var rates = new[] { 30, 60, 90, 120, 144, 165, 240 }.Where(f => max < 24 || f <= max).ToList();
+        if (max >= 24 && !rates.Contains(max))
+            rates.Add(max);
+        FpsOptions = [.. rates.Select(f => new Option(f == max ? Text.Format("quality.fpsScreen", f) : Text.Ltr($"{f} fps"), f))];
+    }
     public QualityPreset Quality { get => _s.Video.Quality; set => Set(() => _s.Video.Quality = value); }
     public int CustomCq { get => _s.Video.CustomCq; set => Set(() => _s.Video.CustomCq = value); }
     public int CustomMbps { get => _s.Video.CustomMbps; set => Set(() => _s.Video.CustomMbps = value); }
@@ -532,7 +563,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
         {
             var (bw, bh) = BaseSize;
             var (w, h) = VideoMath.OutputSize(bw, bh, _s.Video.Resolution);
-            var plan = EncoderPresets.Plan(_s.Video.Codec, _s.Video.Quality, w, h, _s.Video.Fps, _s.Video.CustomCq,
+            var plan = EncoderPresets.Plan(_s.Video.Codec, _s.Video.Quality, w, h, Fps, _s.Video.CustomCq,
                 _s.Video.CustomMbps, nvencAvailable: true, _s.Video.Preset);
             int estimate = EncoderPresets.EstimateBufferMb(plan.MaxBitrateKbps, _s.Replay.Seconds);
             int mb = Math.Min(estimate, BufferBudget.CapMb(estimate, BufferBudget.PhysicalMemoryBytes));

@@ -25,7 +25,7 @@ public sealed class TrayController : IDisposable
         _icon.Text = Tooltip;
         _icon.Visible = true;
         _icon.DoubleClick += (_, _) => SettingsClicked?.Invoke();
-        _flashTimer.Tick += (_, _) => { _flashTimer.Stop(); ApplyIcon(); };
+        _flashTimer.Tick += (_, _) => { _flashTimer.Stop(); if (!_disposed) ApplyIcon(); };
     }
 
     /// <summary>The tray icon's tooltip: just the name (the icon's color already tells the state).</summary>
@@ -44,6 +44,9 @@ public sealed class TrayController : IDisposable
     public void Update(TrayState state, bool quickEnabled, int quickSeconds, bool paused, bool recording, bool canUndo = false,
         bool canShare = false, bool recordingPaused = false, bool lastIsShot = false)
     {
+        // A recording that ends while PixlReplay closes for an update still asks for a refresh: the icon is gone by then.
+        if (_disposed)
+            return;
         _state = state;
         _icon.Text = Tooltip;
         if (!_flashTimer.Enabled)
@@ -97,6 +100,8 @@ public sealed class TrayController : IDisposable
     /// <summary>Draws the icons again in the Look page's colors (they changed, or were just read at start).</summary>
     public void Redraw()
     {
+        if (_disposed)
+            return;
         var old = _icons.Values.ToList();
         DrawIcons();
         ApplyIcon();
@@ -108,6 +113,8 @@ public sealed class TrayController : IDisposable
     /// <summary>Briefly shows the green "saved" icon.</summary>
     public void FlashSaved()
     {
+        if (_disposed)
+            return;
         _icon.Icon = _icons["saved"];
         _flashTimer.Stop();
         _flashTimer.Start();
@@ -131,9 +138,13 @@ public sealed class TrayController : IDisposable
         return icon;
     }
 
+    /// <summary>The red of the recording dot: the color people read as "recording", whatever the theme.</summary>
+    const uint RecordRed = 0xFF3B30;
+
     /// <summary>
-    /// The 32 px tray picture for <paramref name="kind"/>: the app's P in the state's color (a play mark would be too small
-    /// to see at tray size), with a dot while recording and two bars while paused.
+    /// The 32 px tray picture for <paramref name="kind"/>: like the app icon, a tile with the letter, the tile in the state's
+    /// color (the theme's while buffering, grey waiting or paused, green saved, amber trouble), with a red dot in a white
+    /// badge while recording and two bars while paused.
     /// </summary>
     public static Bitmap DrawBitmap(string kind)
     {
@@ -144,34 +155,46 @@ public sealed class TrayController : IDisposable
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             g.Clear(Color.Transparent);
-            var plateColor = Color.FromArgb(unchecked((int)(0xFF000000 | Settings.ThemeColors.Background)));
-            using (var bg = new SolidBrush(plateColor))
-            using (var path = GdiShapes.Rounded(new RectangleF(1, 1, size - 2, size - 2), 8))
+            uint plate = ColorFor(kind);
+            using (var bg = new SolidBrush(Rgb(plate)))
+            using (var path = GdiShapes.Rounded(new RectangleF(0.5f, 0.5f, size - 1, size - 1), 7))
                 g.FillPath(bg, path);
 
-            Color color = Color.FromArgb(unchecked((int)(0xFF000000 | ColorFor(kind))));
-            using var brush = new SolidBrush(color);
+            using var ink = new SolidBrush(Rgb(AppIconArt.InkOn(plate)));
             using (var letter = AppIconArt.Letter(new RectangleF(5, 4, 22, 24)))
-                g.FillPath(brush, letter);
+                g.FillPath(ink, letter);
             if (kind is "recording" or "paused")
             {
-                // A badge at the foot of the bowl, ringed in the plate's color so it stands off the letter.
-                using var ring = new SolidBrush(plateColor);
-                g.FillEllipse(ring, 17, 17, 14, 14);
+                // A badge at the foot of the bowl, ringed in the tile's color so it stands off the letter.
+                using var ring = new SolidBrush(Rgb(plate));
+                g.FillEllipse(ring, 16, 16, 16, 16);
+                using var badge = new SolidBrush(Color.White);
+                g.FillEllipse(badge, 18, 18, 12, 12);
                 if (kind == "recording")
-                    g.FillEllipse(brush, 19.5f, 19.5f, 9, 9);
+                {
+                    using var red = new SolidBrush(Rgb(RecordRed));
+                    g.FillEllipse(red, 20.5f, 20.5f, 7, 7);
+                }
                 else
                 {
-                    g.FillRectangle(brush, 20.5f, 20, 2.6f, 8);
-                    g.FillRectangle(brush, 25, 20, 2.6f, 8);
+                    using var bars = new SolidBrush(Rgb(plate));
+                    g.FillRectangle(bars, 21, 20.5f, 2.4f, 7);
+                    g.FillRectangle(bars, 24.6f, 20.5f, 2.4f, 7);
                 }
             }
         }
         return bmp;
     }
 
+    static Color Rgb(uint rgb) => Color.FromArgb(unchecked((int)(0xFF000000 | rgb)));
+
+    bool _disposed;
+
     public void Dispose()
     {
+        if (_disposed)
+            return;
+        _disposed = true;
         _icon.Visible = false;
         _icon.ContextMenuStrip?.Dispose();
         _icon.Dispose();

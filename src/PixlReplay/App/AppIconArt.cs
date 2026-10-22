@@ -47,7 +47,10 @@ public static class AppIconArt
         return points.Select(p => new PointF(x0 + p.X * scale, y0 + p.Y * scale)).ToArray();
     }
 
-    /// <summary>The app icon: the letter in the text color and the play mark in <paramref name="accent"/> on a rounded plate.</summary>
+    /// <summary>
+    /// The app icon: a tile in <paramref name="accent"/> with the letter and the play mark in white (dark on a light
+    /// accent). Pixl's own icon is a white letter on dark: the colored tile tells the two apart on the taskbar.
+    /// </summary>
     public static Bitmap Draw(int size, uint accent)
     {
         var bmp = new Bitmap(size, size, PixelFormat.Format32bppArgb);
@@ -58,19 +61,21 @@ public static class AppIconArt
         float w = size - 1;
         using (var plate = GdiShapes.Rounded(new RectangleF(0, 0, w, w), size * 0.22f))
         {
-            using var fill = new SolidBrush(Opaque(ThemeColors.Background));
+            using var fill = new SolidBrush(Opaque(accent));
             g.FillPath(fill, plate);
         }
         // Small icons get a bigger letter: the slot and the counter would close up otherwise.
         float h = size * (size <= 24 ? 0.78f : 0.66f);
         var box = new RectangleF((size - h) / 2, (size - h) / 2, h, h);
+        using var ink = new SolidBrush(Opaque(InkOn(accent)));
         using (var letter = Letter(box))
-        using (var ink = new SolidBrush(Opaque(ThemeColors.Text)))
             g.FillPath(ink, letter);
-        using (var mark = new SolidBrush(Opaque(accent)))
-            g.FillPolygon(mark, Fit(Play, box));
+        g.FillPolygon(ink, Fit(Play, box));
         return bmp;
     }
+
+    /// <summary>The letter's color on a tile of <paramref name="plate"/>: white, or near-black on a light tile.</summary>
+    public static uint InkOn(uint plate) => ThemeColors.Luminance(plate) > 0.45 ? 0x16161Au : 0xFFFFFFu;
 
     /// <summary>
     /// The install wizard's side picture: the mark above the name ("Pixl" in the text color, "Replay" in the accent), on

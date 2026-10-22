@@ -19,7 +19,12 @@ public sealed record ShareSpec(SharePlatform Platform, long MaxBytes, double Max
     long QualityCap = SharePlanner.QualityCapBitrate);
 
 /// <summary>Everything the transcoder needs: which part of the clip, the picture and the video bitrate.</summary>
-public sealed record SharePlan(double Start, double Duration, int Width, int Height, CropRect? Crop, double Fps, long VideoBitrate);
+/// <param name="Strict">
+/// Hold the encoder to the bitrate (constant rate, no peaks over it): the passes after one that came out too big. The
+/// first pass lets it spend more on busy scenes, the better picture when the size allows.
+/// </param>
+public sealed record SharePlan(double Start, double Duration, int Width, int Height, CropRect? Crop, double Fps, long VideoBitrate,
+    bool Strict = false);
 
 /// <summary>One stop on the quality slider: the picture's short side in pixels; Original = the clip's own size.</summary>
 public sealed record SizeStep(int ShortSide, bool Original);

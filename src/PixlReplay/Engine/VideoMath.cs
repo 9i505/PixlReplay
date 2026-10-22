@@ -22,6 +22,18 @@ public static class VideoMath
         return (w & ~1, targetH & ~1);
     }
 
+    /// <summary>
+    /// The frame rate to record at: the one asked for, but never more than the screen shows (a 165 Hz screen gives 165
+    /// new pictures a second; 240 would repeat frames, a bigger file that plays worse). Unknown refresh: as asked.
+    /// </summary>
+    public static int CaptureFps(int wanted, int refreshHz) => refreshHz >= 24 ? Math.Min(wanted, refreshHz) : wanted;
+
+    /// <summary>The refresh rate that limits the recording: the captured screen's, or (a window, anywhere) the fastest screen's.</summary>
+    public static int LimitingRefresh(IReadOnlyList<MonitorInfo> monitors, MonitorInfo? captured, CaptureMode mode) =>
+        mode == CaptureMode.Window || captured == null
+            ? monitors.Select(m => m.RefreshHz).DefaultIfEmpty(0).Max()
+            : captured.RefreshHz;
+
     /// <summary>The monitor with <paramref name="id"/>, else the primary, else the first.</summary>
     public static MonitorInfo? PickMonitor(IReadOnlyList<MonitorInfo> monitors, string? id) =>
         monitors.FirstOrDefault(m => m.Id == id)

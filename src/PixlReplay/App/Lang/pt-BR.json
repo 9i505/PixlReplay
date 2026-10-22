@@ -573,5 +573,6 @@
   "count.screens.other": "{0} telas",
   "capture.cardExtra": "Mais telas",
   "capture.extraTip": "Cada salvamento também faz um clipe de cada tela ligada aqui",
-  "capture.extraNone": "Só há uma tela conectada"
+  "capture.extraNone": "Só há uma tela conectada",
+  "quality.fpsScreen": "{0} fps • o máximo da sua tela"
 }

@@ -28,7 +28,7 @@ public static unsafe class ClipTranscoder
     /// <summary>Hardware encoders first (seconds, no CPU load), then Media Foundation (Intel and others), then x264.</summary>
     public static readonly string[] DefaultEncoders = ["h264_nvenc", "h264_amf", "h264_mf", "libx264"];
 
-    const int MaxSizeRetries = 3;
+    const int MaxSizeRetries = 5;
     static readonly AVRational Microseconds = new() { num = 1, den = ffmpeg.AV_TIME_BASE };
     static readonly object LoadLock = new();
     static bool _loaded;
@@ -66,6 +66,9 @@ public static unsafe class ClipTranscoder
             a == null ? 0 : a->codecpar->bit_rate, input.AudioStreams, new FileInfo(path).Length);
     }
 
+    /// <summary>Each pass's asked bitrate and resulting size (the log, and the tests).</summary>
+    internal static Action<string>? Trace;
+
     /// <summary>NVENC runs on the decoder's D3D11 device (tests turn it off to compare the files).</summary>
     internal static bool UseDecoderDevice = true;
 
@@ -95,7 +98,9 @@ public static unsafe class ClipTranscoder
                         PassStats stats;
                         try
                         {
-                            stats = Pass.Run(source, temp, plan with { VideoBitrate = bitrate }, encoder, hardwareDecode, progress, ct);
+                            // After a pass that came out too big, the encoder is held to the bitrate.
+                            stats = Pass.Run(source, temp, plan with { VideoBitrate = bitrate, Strict = plan.Strict || attempt > 0 },
+                                encoder, hardwareDecode, progress, ct);
                         }
                         catch (HardwareDecodeFailedException) when (hardwareDecode)
                         {
@@ -104,6 +109,8 @@ public static unsafe class ClipTranscoder
                             continue;
                         }
                         long size = new FileInfo(temp).Length;
+                        Trace?.Invoke($"{encoder} pass {attempt + 1}: asked {bitrate / 1000} kbps, got {size} bytes " +
+                            $"({stats.VideoBytes} video) for a {maxBytes}-byte limit");
                         if (size <= maxBytes)
                         {
                             string final = Place(temp, target);
@@ -357,8 +364,9 @@ public static unsafe class ClipTranscoder
                 enc->framerate = _rate;
                 enc->time_base = new AVRational { num = _rate.den, den = _rate.num };
                 enc->bit_rate = _plan.VideoBitrate;
-                enc->rc_max_rate = _plan.VideoBitrate * 3 / 2;
-                enc->rc_buffer_size = (int)Math.Min(int.MaxValue, _plan.VideoBitrate * 2);
+                // Strict: never over the bitrate, within a second's worth of bits (the file then lands on its size).
+                enc->rc_max_rate = _plan.Strict ? _plan.VideoBitrate : _plan.VideoBitrate * 3 / 2;
+                enc->rc_buffer_size = (int)Math.Min(int.MaxValue, _plan.Strict ? _plan.VideoBitrate : _plan.VideoBitrate * 2);
                 enc->gop_size = Math.Max(1, (int)Math.Round(_plan.Fps * 2));
                 enc->color_range = _decoder->color_range;
                 enc->colorspace = _decoder->colorspace;
@@ -369,7 +377,7 @@ public static unsafe class ClipTranscoder
                 AVDictionary* options = null;
                 if (tuned)
                 {
-                    foreach (var (key, value) in EncoderOptions(name))
+                    foreach (var (key, value) in EncoderOptions(name, _plan.Strict))
                         ffmpeg.av_dict_set(&options, key, value, 0);
                 }
                 int result = ffmpeg.avcodec_open2(enc, codec, &options);
@@ -385,12 +393,16 @@ public static unsafe class ClipTranscoder
             throw last!;
         }
 
-        static (string, string)[] EncoderOptions(string name) => name switch
+        /// <param name="strict">
+        /// Constant rate: NVENC's variable rate overshot small sizes more the lower it went (RTX 5080: 273 kbps asked,
+        /// 400 kbps written), so a clip never fit; held to the bitrate it lands on it.
+        /// </param>
+        static (string, string)[] EncoderOptions(string name, bool strict) => name switch
         {
-            "h264_nvenc" => [("preset", "p6"), ("tune", "hq"), ("rc", "vbr"), ("multipass", "qres"), ("spatial-aq", "1"),
+            "h264_nvenc" => [("preset", "p6"), ("tune", "hq"), ("rc", strict ? "cbr" : "vbr"), ("multipass", "qres"), ("spatial-aq", "1"),
                 ("rc-lookahead", "20"), ("profile", "high")],
-            "h264_amf" => [("usage", "transcoding"), ("quality", "quality"), ("rc", "vbr_peak"), ("profile", "high")],
-            "h264_mf" => [("hw_encoding", "1"), ("rate_control", "pc_vbr")],
+            "h264_amf" => [("usage", "transcoding"), ("quality", "quality"), ("rc", strict ? "cbr" : "vbr_peak"), ("profile", "high")],
+            "h264_mf" => [("hw_encoding", "1"), ("rate_control", strict ? "cbr" : "pc_vbr")],
             "libx264" => [("preset", "faster"), ("profile", "high")],
             _ => [],
         };

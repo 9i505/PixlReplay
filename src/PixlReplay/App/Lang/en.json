@@ -573,5 +573,6 @@
   "count.screens.other": "{0} screens",
   "capture.cardExtra": "More screens",
   "capture.extraTip": "Each save also makes a clip of every screen turned on here",
-  "capture.extraNone": "Only one screen is connected"
+  "capture.extraNone": "Only one screen is connected",
+  "quality.fpsScreen": "{0} fps • your screen's most"
 }

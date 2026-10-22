@@ -591,5 +591,6 @@
   "count.screens.other": "{0} شاشة",
   "capture.cardExtra": "شاشات إضافية",
   "capture.extraTip": "كل حفظ يحفظ أيضًا مقطعًا لكل شاشة تشغّلها هنا",
-  "capture.extraNone": "شاشة واحدة فقط موصولة"
+  "capture.extraNone": "شاشة واحدة فقط موصولة",
+  "quality.fpsScreen": "{0} fps • أقصى ما تعرضه شاشتك"
 }

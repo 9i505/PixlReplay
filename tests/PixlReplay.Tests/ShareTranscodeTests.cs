@@ -134,6 +134,7 @@ public static class ShareTranscodeTests
     public static void An_encoder_overshoot_is_retried_until_the_file_fits()
     {
         TestFfmpeg.Load();
+        ClipTranscoder.Trace = Console.WriteLine;
         string output = Temp("tight.mp4");
         // Asks for ~6 MB of video in a 400 kB limit: the first pass overshoots, the retry must bring it under.
         var plan = new SharePlan(0, 6, 640, 360, null, 60, 8_000_000);

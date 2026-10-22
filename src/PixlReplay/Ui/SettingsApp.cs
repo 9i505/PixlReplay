@@ -23,6 +23,8 @@ public static partial class SettingsApp
         Text.Language = SettingsStore.Load(SettingsStore.DefaultPath).General.Language;
         // Its own log beside the engine's: a window error is written down, not only shrugged off.
         Engine.ObsLog.Open(Path.Combine(SettingsStore.AppDataDir, "logs"), "settings");
+        // Each pass of a share's conversion (asked bitrate, size written): a clip that would not fit says why.
+        Engine.Share.ClipTranscoder.Trace = message => Engine.ObsLog.Info("share: " + message);
         var app = CreateApplication();
         var vm = new SettingsViewModel();
         MainWindow? window = null;

@@ -307,7 +307,7 @@ public static class EditRenderTests
         sta.Start();
         sta.Join();
 
-        string obs = @"C:\Program Files\obs-studio\bin\64bit";
+        string obs = TestFfmpeg.Folder ?? @"C:\Program Files\obs-studio\bin\64bit";
         var start = new System.Diagnostics.ProcessStartInfo(Path.Combine(AppContext.BaseDirectory, "PixlReplay.exe"))
         {
             UseShellExecute = false,

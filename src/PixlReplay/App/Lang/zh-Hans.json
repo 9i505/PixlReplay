@@ -567,5 +567,6 @@
   "count.screens.other": "{0} 个屏幕",
   "capture.cardExtra": "更多屏幕",
   "capture.extraTip": "每次保存时，这里打开的每个屏幕也各存一段",
-  "capture.extraNone": "只连接了一个屏幕"
+  "capture.extraNone": "只连接了一个屏幕",
+  "quality.fpsScreen": "{0} fps • 屏幕上限"
 }

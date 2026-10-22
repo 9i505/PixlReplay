@@ -105,7 +105,10 @@ public sealed class CapturePipeline : IDisposable
         var ids = ObsHost.EncoderIds();
         Choice = EncoderCatalog.Pick(_s.Video.Codec, _encoderFilter?.Invoke(ids) ?? ids);
         Output = VideoMath.OutputSize(baseW, baseH, _s.Video.Resolution);
-        Fps = _s.Video.Fps;
+        int refresh = VideoMath.LimitingRefresh(monitors, monitor, _s.Capture.Mode);
+        Fps = VideoMath.CaptureFps(_s.Video.Fps, refresh);
+        if (Fps < _s.Video.Fps)
+            ObsLog.Info($"{_s.Video.Fps} fps asked, the screen shows {refresh} Hz: recording at {Fps} fps");
         if (Choice.Vendor == EncoderVendor.Software)
             (Output, Fps) = EncoderCatalog.LimitForSoftware(Output, Fps);
         if (!ObsHost.ResetVideo(new VideoConfig(baseW, baseH, Output.W, Output.H, Fps)))

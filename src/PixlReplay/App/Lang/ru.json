@@ -579,5 +579,6 @@
   "count.screens.many": "{0} экранов",
   "capture.cardExtra": "Другие экраны",
   "capture.extraTip": "Каждое сохранение даёт клип и с каждого экрана здесь",
-  "capture.extraNone": "Подключён только один экран"
+  "capture.extraNone": "Подключён только один экран",
+  "quality.fpsScreen": "{0} fps • максимум экрана"
 }

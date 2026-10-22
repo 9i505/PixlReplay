@@ -573,5 +573,6 @@
   "count.screens.other": "{0} pantallas",
   "capture.cardExtra": "Más pantallas",
   "capture.extraTip": "Cada guardado hace también un clip de cada pantalla de aquí",
-  "capture.extraNone": "Solo hay una pantalla conectada"
+  "capture.extraNone": "Solo hay una pantalla conectada",
+  "quality.fpsScreen": "{0} fps • el máximo de tu pantalla"
 }
