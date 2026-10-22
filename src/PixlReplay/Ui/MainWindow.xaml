@@ -5,8 +5,8 @@
         xmlns:e="clr-namespace:PixlReplay.Ui.Edit"
         Width="1100" Height="700" MinWidth="860" MinHeight="580"
         WindowStartupLocation="CenterScreen"
-        Background="{StaticResource Bg}" Foreground="{StaticResource TextPrimary}"
-        FontFamily="{StaticResource UiFont}" FontSize="14"
+        Background="{DynamicResource WindowBg}" Foreground="{DynamicResource TextPrimary}"
+        FontFamily="{DynamicResource UiFont}" FontSize="14"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="40" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
@@ -15,7 +15,7 @@
         <Style x:Key="Caption" TargetType="Button">
             <Setter Property="Width" Value="46"/>
             <Setter Property="Height" Value="40"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
             <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
             <Setter Property="Focusable" Value="False"/>
             <Setter Property="Template">
@@ -28,11 +28,11 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
-                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource StrokeStrong}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource StrokeStrong}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -73,16 +73,27 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- The Look page's picture behind everything, under a veil of the background color (set in code) -->
+        <Grid x:Name="Backdrop" Grid.RowSpan="2" Grid.ColumnSpan="2" ClipToBounds="True" IsHitTestVisible="False" Visibility="Collapsed">
+            <Image x:Name="BackdropImage" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center"
+                   RenderOptions.BitmapScalingMode="HighQuality"/>
+            <Rectangle x:Name="BackdropVeil"/>
+        </Grid>
+
         <!-- Sidebar (spans the title bar so the window reads as one surface) -->
-        <Border Grid.RowSpan="2" Background="{StaticResource NavBg}" BorderBrush="{StaticResource Stroke}" BorderThickness="0,0,1,0"/>
-        <StackPanel Orientation="Horizontal" Margin="22,0,0,0" VerticalAlignment="Center">
-            <Grid Width="22" Height="22">
-                <Ellipse Width="18" Height="18" Stroke="{DynamicResource Accent}" StrokeThickness="2.2" StrokeDashArray="6 1.4"/>
-                <Ellipse Width="6" Height="6" Fill="{DynamicResource Accent}"/>
-            </Grid>
-            <!-- The name as drawn (Kai + rose italic ros; in Arabic كاي + rose slanted روس), set for the language in code -->
-            <Image x:Name="Wordmark" Height="22" Margin="6,0,0,0" VerticalAlignment="Center" FlowDirection="LeftToRight"
-                   RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="{l:T app}"/>
+        <Border Grid.RowSpan="2" Background="{DynamicResource NavBg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="0,0,1,0"/>
+        <StackPanel Orientation="Horizontal" Margin="22,0,0,0" VerticalAlignment="Center" FlowDirection="LeftToRight"
+                    AutomationProperties.Name="{l:T app}">
+            <!-- The Pixl family's P with a play mark in the accent (the points of App/AppIconArt.cs) -->
+            <Viewbox Width="17" Height="22" Stretch="Uniform">
+                <Canvas Width="328" Height="420">
+                    <Path Fill="{DynamicResource TextPrimary}"
+                          Data="M1,1 L94,1 94,326 1,419 Z M126,1 L246,1 327,82 327,178 246,261 94,261 94,176 208,176 235,149 235,114 208,87 126,87 Z"/>
+                    <Path Fill="{DynamicResource Accent}" Data="M146,101 L146,161 198,131 Z"/>
+                </Canvas>
+            </Viewbox>
+            <TextBlock Text="Pixl" FontSize="18" FontWeight="SemiBold" Margin="9,0,0,1" VerticalAlignment="Center"/>
+            <TextBlock Text="Replay" FontSize="18" FontWeight="Light" Margin="5,0,0,1" VerticalAlignment="Center" Foreground="{DynamicResource Accent}"/>
         </StackPanel>
 
         <!-- Window buttons (above the share panel's dimmed backdrop, so the window can always be closed) -->
@@ -105,6 +116,7 @@
             <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE720;" Content="{l:T nav.voice}" x:Name="NavVoice"/>
             <TextBlock Style="{StaticResource NavGroup}" Text="{l:T nav.groupApp}"/>
             <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE71B;" Content="{l:T nav.connections}" x:Name="NavConnections"/>
+            <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE790;" Content="{l:T nav.look}" x:Name="NavLook"/>
             <RadioButton Style="{StaticResource Nav}" GroupName="nav" Tag="&#xE713;" Content="{l:T nav.general}" x:Name="NavGeneral"/>
         </StackPanel>
 
@@ -118,7 +130,7 @@
 
             <!-- A newer PixlReplay: one slim line above the pages, only while there is one -->
             <Border Grid.Row="0" Margin="36,6,36,2" MaxWidth="860" Padding="16,8,10,8" CornerRadius="10"
-                    Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1"
+                    Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1"
                     Visibility="{Binding UpdateBarVisible, Converter={StaticResource Vis}}">
                 <DockPanel LastChildFill="True">
                     <Button DockPanel.Dock="Right" Style="{StaticResource Primary}" Content="{Binding UpdateActionText}" Command="{Binding UpdateCommand}"
@@ -141,7 +153,7 @@
             <!-- The Library's chosen clips: a bar floating at the bottom, over the cards (they never move) -->
             <Grid x:Name="LibraryBarLayer" Grid.Row="1" Visibility="Collapsed">
                 <Border x:Name="LibraryBar" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,22" Padding="18,8,8,8" CornerRadius="14"
-                        Background="{StaticResource CardHover}" BorderBrush="{StaticResource StrokeStrong}" BorderThickness="1"
+                        Background="{DynamicResource CardHover}" BorderBrush="{DynamicResource StrokeStrong}" BorderThickness="1"
                         Visibility="{Binding HasSelection, Converter={StaticResource Vis}}">
                     <Border.Effect>
                         <DropShadowEffect BlurRadius="28" ShadowDepth="6" Direction="270" Opacity="0.45" Color="Black"/>
@@ -178,13 +190,13 @@
                 </Border>
             </Grid>
 
-            <Border Grid.Row="2" Background="{StaticResource NavBg}" BorderBrush="{StaticResource Stroke}" BorderThickness="0,1,0,0" Padding="28,12"
+            <Border Grid.Row="2" Background="{DynamicResource NavBg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="0,1,0,0" Padding="28,12"
                     Visibility="{Binding ShowBar, Converter={StaticResource Vis}}">
                 <DockPanel LastChildFill="False">
                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Ellipse Width="8" Height="8" Fill="{StaticResource Warning}" Margin="0,0,8,0"
+                        <Ellipse Width="8" Height="8" Fill="{DynamicResource Warning}" Margin="0,0,8,0"
                                  Visibility="{Binding IsDirty, Converter={StaticResource Vis}}"/>
-                        <TextBlock Text="{Binding Message}" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Message}" Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                     </StackPanel>
                     <Button DockPanel.Dock="Right" Style="{StaticResource Primary}" Content="{l:T bar.apply}" Command="{Binding ApplyCommand}" MinWidth="110"/>
                     <Button DockPanel.Dock="Right" Style="{StaticResource Ghost}" Content="{l:T bar.revert}" Command="{Binding RevertCommand}" Margin="0,0,10,0"/>

@@ -16,6 +16,7 @@ public static class SettingsDiff
         copy.General = new GeneralSettings { OnlyWhenGaming = s.General.OnlyWhenGaming };
         copy.Voice = new VoiceSettings { Enabled = s.Voice.Enabled };
         copy.Share = new ShareSettings();
+        copy.Look = new LookSettings();
         // Instant replay on/off only starts or stops the buffer; a rebuild would also end a full recording.
         copy.Replay.Enabled = true;
         return SettingsStore.Serialize(copy);

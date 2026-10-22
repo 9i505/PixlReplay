@@ -60,3 +60,5 @@ public partial class SmartSavePage : UserControl { public SmartSavePage() => Ini
 public partial class ConnectionsPage : UserControl { public ConnectionsPage() => InitializeComponent(); }
 
 public partial class GeneralPage : UserControl { public GeneralPage() => InitializeComponent(); }
+
+public partial class LookPage : UserControl { public LookPage() => InitializeComponent(); }

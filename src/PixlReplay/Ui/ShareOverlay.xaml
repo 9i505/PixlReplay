@@ -6,20 +6,20 @@
     <UserControl.Resources>
         <!-- Compact platform tile: same selection language as the choice cards, sized for four in a row. -->
         <Style x:Key="Tile" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="0,0,8,0"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bd" Background="{StaticResource Bg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1.5"
+                        <Border x:Name="Bd" Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1.5"
                                 CornerRadius="10" Padding="6,12,6,10">
                             <ContentPresenter HorizontalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
@@ -39,20 +39,20 @@
         </Style>
         <!-- Copy: a tile that acts at once (no choice to keep), same look as the platform tiles -->
         <Style x:Key="ActionTile" TargetType="Button">
-            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="0,0,8,0"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd" Background="{StaticResource Bg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1.5"
+                        <Border x:Name="Bd" Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1.5"
                                 CornerRadius="10" Padding="6,12,6,10">
                             <ContentPresenter HorizontalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
@@ -81,10 +81,10 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -108,14 +108,14 @@
         <Style x:Key="Field" TargetType="TextBlock" BasedOn="{StaticResource Label}">
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
             <Setter Property="Margin" Value="0,18,0,8"/>
         </Style>
     </UserControl.Resources>
 
-    <Grid x:Name="Scrim" Background="#C81A1514">
+    <Grid x:Name="Scrim" Background="#C8161619">
         <Border x:Name="Panel" MaxWidth="940" Margin="24,52,24,24" VerticalAlignment="Center"
-                Background="{StaticResource Surface}" BorderBrush="{StaticResource StrokeStrong}" BorderThickness="1" CornerRadius="14"
+                Background="{DynamicResource Surface}" BorderBrush="{DynamicResource StrokeStrong}" BorderThickness="1" CornerRadius="14"
                 WindowChrome.IsHitTestVisibleInChrome="True" KeyboardNavigation.TabNavigation="Cycle"
                 AutomationProperties.Name="{l:T share.title}">
             <Border.Effect>
@@ -151,11 +151,11 @@
                         <StackPanel VerticalAlignment="Top">
                             <l:AspectBox Ratio="{Binding PreviewAspect}">
                                 <!-- A click on the picture plays or pauses the cut; with 9:16 on, a drag moves the frame -->
-                                <Border x:Name="Preview" CornerRadius="10" Background="#231D1C" ClipToBounds="True" Cursor="Hand"
+                                <Border x:Name="Preview" CornerRadius="10" Background="{DynamicResource FieldFill}" ClipToBounds="True" Cursor="Hand"
                                         FlowDirection="LeftToRight" MouseLeftButtonDown="OnPreviewDown" MouseMove="OnPreviewMove" MouseLeftButtonUp="OnPreviewUp"
                                         ToolTip="{Binding PlayLabel}" AutomationProperties.Name="{Binding PlayLabel}">
                                     <Grid>
-                                        <TextBlock Style="{StaticResource Icon}" Text="&#xE714;" FontSize="28" Foreground="{StaticResource StrokeStrong}" HorizontalAlignment="Center"/>
+                                        <TextBlock Style="{StaticResource Icon}" Text="&#xE714;" FontSize="28" Foreground="{DynamicResource StrokeStrong}" HorizontalAlignment="Center"/>
                                         <Image Source="{Binding PreviewFrame}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
                                         <!-- 9:16 frame: drag it sideways on the picture -->
                                         <Grid Visibility="{Binding ShowCrop, Converter={StaticResource Vis}}">
@@ -172,7 +172,7 @@
                                             <Rectangle Grid.Column="2" Fill="#B4000000"/>
                                         </Grid>
                                         <!-- Edit (top right, like the player) -->
-                                        <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" CornerRadius="9" Background="#B0141010"
+                                        <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10" CornerRadius="9" Background="#B0111114"
                                                 Visibility="{Binding IsChoosing, Converter={StaticResource Vis}}">
                                             <Button x:Name="EditButton" Style="{StaticResource Ghost}" Command="{Binding EditCommand}" Padding="12,7" FontSize="13"
                                                     BorderBrush="Transparent" Foreground="White" AutomationProperties.Name="{l:T viewer.edit}">
@@ -253,13 +253,13 @@
                             <!-- One line under the bar: where the cut starts and ends, and about how big it comes out -->
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0" FlowDirection="LeftToRight"
                                         Visibility="{Binding HasVideo, Converter={StaticResource Vis}}">
-                                <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="7" Padding="10,4">
-                                    <TextBlock Text="{Binding TrimRange}" FontSize="12.5" Foreground="{StaticResource TextSecondary}"
+                                <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1" CornerRadius="7" Padding="10,4">
+                                    <TextBlock Text="{Binding TrimRange}" FontSize="12.5" Foreground="{DynamicResource TextSecondary}"
                                                Typography.NumeralAlignment="Tabular"/>
                                 </Border>
-                                <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="7" Padding="10,4"
+                                <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1" CornerRadius="7" Padding="10,4"
                                         Margin="8,0,0,0" Visibility="{Binding SizeEstimate, Converter={StaticResource Vis}}">
-                                    <TextBlock Text="{Binding SizeEstimate}" FontSize="12.5" Foreground="{StaticResource TextSecondary}"/>
+                                    <TextBlock Text="{Binding SizeEstimate}" FontSize="12.5" Foreground="{DynamicResource TextSecondary}"/>
                                 </Border>
                             </StackPanel>
                         </StackPanel>
@@ -297,10 +297,10 @@
                                         <Border Width="38" Height="38" CornerRadius="19" HorizontalAlignment="Center">
                                             <Border.Style>
                                                 <Style TargetType="Border">
-                                                    <Setter Property="Background" Value="{StaticResource StrokeStrong}"/>
+                                                    <Setter Property="Background" Value="{DynamicResource StrokeStrong}"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsCopied}" Value="True">
-                                                            <Setter Property="Background" Value="{StaticResource Success}"/>
+                                                            <Setter Property="Background" Value="{DynamicResource Success}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -325,7 +325,7 @@
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsCopied}" Value="True">
                                                             <Setter Property="Text" Value="{l:T share.copied}"/>
-                                                            <Setter Property="Foreground" Value="{StaticResource Success}"/>
+                                                            <Setter Property="Foreground" Value="{DynamicResource Success}"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -341,11 +341,11 @@
                                 <StackPanel Orientation="Horizontal" Margin="0,-4">
                                     <!-- The three marks overlapping, left to right in every language -->
                                     <Grid Width="78" Height="34" FlowDirection="LeftToRight" VerticalAlignment="Center">
-                                        <Ellipse Width="36" Height="36" Fill="{StaticResource Bg}" HorizontalAlignment="Left" Margin="42,-1,0,-1"/>
+                                        <Ellipse Width="36" Height="36" Fill="{DynamicResource Bg}" HorizontalAlignment="Left" Margin="42,-1,0,-1"/>
                                         <Image Source="Assets/instagram.png" Width="32" Height="32" HorizontalAlignment="Left" Margin="44,0,0,0" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                        <Ellipse Width="36" Height="36" Fill="{StaticResource Bg}" HorizontalAlignment="Left" Margin="20,-1,0,-1"/>
+                                        <Ellipse Width="36" Height="36" Fill="{DynamicResource Bg}" HorizontalAlignment="Left" Margin="20,-1,0,-1"/>
                                         <Image Source="Assets/tiktok.png" Width="32" Height="32" HorizontalAlignment="Left" Margin="22,0,0,0" RenderOptions.BitmapScalingMode="HighQuality"/>
-                                        <Ellipse Width="36" Height="36" Fill="{StaticResource Bg}" HorizontalAlignment="Left" Margin="-2,-1,0,-1"/>
+                                        <Ellipse Width="36" Height="36" Fill="{DynamicResource Bg}" HorizontalAlignment="Left" Margin="-2,-1,0,-1"/>
                                         <Image Source="Assets/x.png" Width="32" Height="32" HorizontalAlignment="Left" RenderOptions.BitmapScalingMode="HighQuality"/>
                                     </Grid>
                                     <TextBlock Text="{l:T share.all}" FontSize="13.5" VerticalAlignment="Center" Margin="12,0,0,0"/>
@@ -370,11 +370,11 @@
                                     <Border CornerRadius="8" BorderThickness="1">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="Background" Value="{StaticResource FieldFill}"/>
-                                                <Setter Property="BorderBrush" Value="{StaticResource Stroke}"/>
+                                                <Setter Property="Background" Value="{DynamicResource FieldFill}"/>
+                                                <Setter Property="BorderBrush" Value="{DynamicResource Stroke}"/>
                                                 <Style.Triggers>
                                                     <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{StaticResource StrokeStrong}"/>
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource StrokeStrong}"/>
                                                     </Trigger>
                                                     <Trigger Property="IsKeyboardFocusWithin" Value="True">
                                                         <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
@@ -388,7 +388,7 @@
                                                     Click="OnEmojiOpen" ToolTip="{l:T share.emoji}" AutomationProperties.Name="{l:T share.emoji}">
                                                 <!-- A plain smiley like the other icons; the colour ones are inside -->
                                                 <TextBlock Style="{StaticResource Icon}" Text="&#xE76E;" FontSize="17" Width="20" TextAlignment="Center"
-                                                           Foreground="{StaticResource TextSecondary}"/>
+                                                           Foreground="{DynamicResource TextSecondary}"/>
                                             </Button>
                                             <TextBox x:Name="CaptionBox" Text="{Binding Caption, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MaxHeight="76" FlowDirection="{Binding CaptionFlow}"
                                                      Padding="11,6,4,6" MinHeight="0" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Center"
@@ -413,7 +413,7 @@
                                     </Border>
                                     <Popup x:Name="EmojiPopup" PlacementTarget="{Binding ElementName=EmojiButton}" Placement="Bottom"
                                            StaysOpen="False" AllowsTransparency="True" PopupAnimation="Fade" Closed="OnEmojiClosed">
-                                        <Border Background="{StaticResource Surface}" BorderBrush="{StaticResource StrokeStrong}" BorderThickness="1" CornerRadius="12"
+                                        <Border Background="{DynamicResource Surface}" BorderBrush="{DynamicResource StrokeStrong}" BorderThickness="1" CornerRadius="12"
                                                 Padding="8" Margin="0,6,12,12">
                                             <Border.Effect>
                                                 <DropShadowEffect BlurRadius="18" ShadowDepth="2" Opacity="0.5" Color="Black"/>
@@ -446,10 +446,10 @@
                                                                         </Grid>
                                                                         <ControlTemplate.Triggers>
                                                                             <Trigger Property="IsMouseOver" Value="True">
-                                                                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
                                                                             </Trigger>
                                                                             <Trigger Property="IsSelected" Value="True">
-                                                                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
                                                                                 <Setter TargetName="Bar" Property="Visibility" Value="Visible"/>
                                                                             </Trigger>
                                                                         </ControlTemplate.Triggers>
@@ -459,7 +459,7 @@
                                                         </Style>
                                                     </ListBox.ItemContainerStyle>
                                                 </ListBox>
-                                                <Border Height="1" Background="{StaticResource Stroke}" Margin="2,0,2,6"/>
+                                                <Border Height="1" Background="{DynamicResource Stroke}" Margin="2,0,2,6"/>
                                                 <ScrollViewer MaxHeight="184" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
                                                     <ItemsControl ItemsSource="{Binding SelectedItem.Emoji, ElementName=EmojiTabs}" Focusable="False">
                                                         <ItemsControl.ItemsPanel>
@@ -488,8 +488,8 @@
                                     </Button>
                                 </Grid>
                                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0" Visibility="{Binding CopiedVisible, Converter={StaticResource Vis}}">
-                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="11" Foreground="{StaticResource Success}" Margin="0,0,6,0"/>
-                                    <TextBlock Style="{StaticResource Caption}" Text="{l:T share.copied}" Foreground="{StaticResource Success}" Margin="0"/>
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="11" Foreground="{DynamicResource Success}" Margin="0,0,6,0"/>
+                                    <TextBlock Style="{StaticResource Caption}" Text="{l:T share.copied}" Foreground="{DynamicResource Success}" Margin="0"/>
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
@@ -497,7 +497,7 @@
                 </ScrollViewer>
 
                 <!-- Footer: plan and action / progress / result / error -->
-                <Border Grid.Row="2" Background="{StaticResource NavBg}" BorderBrush="{StaticResource Stroke}" BorderThickness="0,1,0,0"
+                <Border Grid.Row="2" Background="{DynamicResource NavBg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="0,1,0,0"
                         CornerRadius="0,0,14,14" Padding="24,14">
                     <Grid>
                         <DockPanel Visibility="{Binding IsChoosing, Converter={StaticResource Vis}}">
@@ -522,7 +522,7 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="10"
+                                        <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1" CornerRadius="10"
                                                 Padding="10,8" Margin="0,0,8,0" ToolTip="{Binding Detail}">
                                             <DockPanel>
                                                 <Image DockPanel.Dock="Left" Source="{Binding Logo}" Width="28" Height="28" FlowDirection="LeftToRight"
@@ -536,19 +536,19 @@
                                                         <Ellipse Width="7" Height="7" VerticalAlignment="Center" Margin="0,0,6,0">
                                                             <Ellipse.Style>
                                                                 <Style TargetType="Ellipse">
-                                                                    <Setter Property="Fill" Value="{StaticResource StrokeStrong}"/>
+                                                                    <Setter Property="Fill" Value="{DynamicResource StrokeStrong}"/>
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding IsBusy}" Value="True">
                                                                             <Setter Property="Fill" Value="{DynamicResource Accent}"/>
                                                                         </DataTrigger>
                                                                         <DataTrigger Binding="{Binding IsPosted}" Value="True">
-                                                                            <Setter Property="Fill" Value="{StaticResource Success}"/>
+                                                                            <Setter Property="Fill" Value="{DynamicResource Success}"/>
                                                                         </DataTrigger>
                                                                         <DataTrigger Binding="{Binding NeedsUser}" Value="True">
-                                                                            <Setter Property="Fill" Value="{StaticResource Warning}"/>
+                                                                            <Setter Property="Fill" Value="{DynamicResource Warning}"/>
                                                                         </DataTrigger>
                                                                         <DataTrigger Binding="{Binding IsFailed}" Value="True">
-                                                                            <Setter Property="Fill" Value="{StaticResource Warning}"/>
+                                                                            <Setter Property="Fill" Value="{DynamicResource Warning}"/>
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
@@ -567,9 +567,9 @@
                         <DockPanel Visibility="{Binding IsSingleWorking, Converter={StaticResource Vis}}">
                             <Button DockPanel.Dock="Right" Style="{StaticResource Ghost}" Content="{l:T share.cancel}" Command="{Binding CancelCommand}" Margin="16,0,0,0"/>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding ProgressText}" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8"/>
+                                <TextBlock Text="{Binding ProgressText}" Foreground="{DynamicResource TextSecondary}" Margin="0,0,0,8"/>
                                 <ProgressBar Height="6" Minimum="0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}" Foreground="{DynamicResource Accent}"
-                                             Background="{StaticResource Bg}" BorderThickness="0"/>
+                                             Background="{DynamicResource Bg}" BorderThickness="0"/>
                             </StackPanel>
                         </DockPanel>
 
@@ -577,8 +577,8 @@
                         <DockPanel Visibility="{Binding IsSinglePublishing, Converter={StaticResource Vis}}">
                             <Button DockPanel.Dock="Right" Style="{StaticResource Ghost}" Content="{l:T share.cancel}" Command="{Binding CancelCommand}" Margin="16,0,0,0"/>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding PublishText}" Foreground="{StaticResource TextSecondary}" Margin="0,0,0,8" TextWrapping="Wrap"/>
-                                <ProgressBar Height="6" IsIndeterminate="True" Foreground="{DynamicResource Accent}" Background="{StaticResource Bg}" BorderThickness="0"/>
+                                <TextBlock Text="{Binding PublishText}" Foreground="{DynamicResource TextSecondary}" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                                <ProgressBar Height="6" IsIndeterminate="True" Foreground="{DynamicResource Accent}" Background="{DynamicResource Bg}" BorderThickness="0"/>
                             </StackPanel>
                         </DockPanel>
 
@@ -588,8 +588,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Border Width="30" Height="30" CornerRadius="15" Background="{StaticResource SuccessSoft}" VerticalAlignment="Top" Margin="0,2,12,0">
-                                <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="13" Foreground="{StaticResource Success}" HorizontalAlignment="Center"/>
+                            <Border Width="30" Height="30" CornerRadius="15" Background="{DynamicResource SuccessSoft}" VerticalAlignment="Top" Margin="0,2,12,0">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="13" Foreground="{DynamicResource Success}" HorizontalAlignment="Center"/>
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
                                 <TextBlock Text="{Binding ResultTitle}" FontWeight="SemiBold"/>
@@ -620,8 +620,8 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Border Width="30" Height="30" CornerRadius="15" Background="{StaticResource WarningSoft}" VerticalAlignment="Top" Margin="0,2,12,0">
-                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="13" Foreground="{StaticResource Warning}" HorizontalAlignment="Center"/>
+                            <Border Width="30" Height="30" CornerRadius="15" Background="{DynamicResource WarningSoft}" VerticalAlignment="Top" Margin="0,2,12,0">
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="13" Foreground="{DynamicResource Warning}" HorizontalAlignment="Center"/>
                             </Border>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
                                 <TextBlock Text="{l:T share.failed}" FontWeight="SemiBold"/>

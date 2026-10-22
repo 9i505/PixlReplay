@@ -110,8 +110,8 @@ public sealed class SaveToast : NativeWindow, IDisposable
 
         float r = 12 * scale;
         using (var path = GdiShapes.Rounded(new RectangleF(0.5f, 0.5f, w - 1, h - 1), r))
-        using (var bg = new SolidBrush(Color.FromArgb(245, 58, 49, 48)))
-        using (var border = new Pen(Color.FromArgb(255, 98, 84, 83), 1))
+        using (var bg = new SolidBrush(Rgb(Settings.ThemeColors.Surface, 245)))
+        using (var border = new Pen(Rgb(Settings.ThemeColors.StrokeStrong), 1))
         {
             g.FillPath(bg, path);
             g.DrawPath(border, path);
@@ -122,7 +122,7 @@ public sealed class SaveToast : NativeWindow, IDisposable
         float iconY = (h - icon) / 2;
         using (var disc = new SolidBrush(warning ? Color.FromArgb(255, 255, 176, 32) : Color.FromArgb(255, 46, 212, 122)))
             g.FillEllipse(disc, iconX, iconY, icon, icon);
-        using (var mark = new Pen(Color.FromArgb(255, 46, 39, 38), 2.6f * scale) { StartCap = LineCap.Round, EndCap = LineCap.Round, LineJoin = LineJoin.Round })
+        using (var mark = new Pen(Color.FromArgb(255, 28, 28, 33), 2.6f * scale) { StartCap = LineCap.Round, EndCap = LineCap.Round, LineJoin = LineJoin.Round })
         {
             if (warning)
             {
@@ -150,12 +150,14 @@ public sealed class SaveToast : NativeWindow, IDisposable
         };
         using var titleFont = new Font("Segoe UI Semibold", 10.5f * scale, FontStyle.Regular, GraphicsUnit.Point);
         using var subFont = new Font("Segoe UI", 9f * scale, FontStyle.Regular, GraphicsUnit.Point);
-        using var white = new SolidBrush(Color.FromArgb(255, 245, 236, 234));
-        using var grey = new SolidBrush(Color.FromArgb(255, 187, 170, 167));
+        using var white = new SolidBrush(Rgb(Settings.ThemeColors.Text));
+        using var grey = new SolidBrush(Rgb(Settings.ThemeColors.TextSecondary));
         g.DrawString(title, titleFont, white, new RectangleF(textLeft, 12 * scale, textWidth, 22 * scale), format);
         g.DrawString(subtitle, subFont, grey, new RectangleF(textLeft, 34 * scale, textWidth, 20 * scale), format);
         return bmp;
     }
+
+    static Color Rgb(uint rgb, int alpha = 255) => Color.FromArgb(alpha, (int)(rgb >> 16) & 0xFF, (int)(rgb >> 8) & 0xFF, (int)rgb & 0xFF);
 
     void Present(Bitmap image, Point pos, byte alpha)
     {

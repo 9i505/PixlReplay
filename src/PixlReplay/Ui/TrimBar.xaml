@@ -17,7 +17,7 @@
     </UserControl.Resources>
     <!-- A click or drag on the strip moves the playhead (inside the cut) -->
     <Grid Background="Transparent" Cursor="Hand" MouseLeftButtonDown="OnStripDown">
-        <Border x:Name="StripBox" Margin="12,4" CornerRadius="5" Background="#231D1C" ClipToBounds="True">
+        <Border x:Name="StripBox" Margin="12,4" CornerRadius="5" Background="{DynamicResource FieldFill}" ClipToBounds="True">
             <ItemsControl x:Name="Strip" Focusable="False" IsHitTestVisible="False">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -32,8 +32,8 @@
             </ItemsControl>
         </Border>
         <Canvas x:Name="Overlay">
-            <Rectangle x:Name="ShadeLeft" Fill="#C0201A19" IsHitTestVisible="False"/>
-            <Rectangle x:Name="ShadeRight" Fill="#C0201A19" IsHitTestVisible="False"/>
+            <Rectangle x:Name="ShadeLeft" Fill="#C01B1B20" IsHitTestVisible="False"/>
+            <Rectangle x:Name="ShadeRight" Fill="#C01B1B20" IsHitTestVisible="False"/>
             <!-- The cut: drag its middle to move it (a plain click there moves the playhead) -->
             <Border x:Name="Range" BorderBrush="{DynamicResource Accent}" BorderThickness="0,2.5" Background="Transparent" Cursor="SizeAll"
                     MouseLeftButtonDown="OnRangeDown"/>

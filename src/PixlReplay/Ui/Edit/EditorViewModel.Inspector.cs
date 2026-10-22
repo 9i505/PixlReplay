@@ -153,7 +153,7 @@ public sealed partial class EditorViewModel
 
     // ---------------------------------------------------------------- palettes and choices
 
-    static readonly string[] Palette = ["#FFFFFF", "#F48BA4", "#FFD54A", "#FF5A5A", "#3DDC84", "#4FC3F7", "#111111"];
+    static readonly string[] Palette = ["#FFFFFF", "#FF8F6B", "#FFD54A", "#FF5A5A", "#3DDC84", "#4FC3F7", "#111111"];
     static readonly double[] SpeedSteps = [0.25, 0.5, 1, 1.5, 2, 3];
     public IReadOnlyList<SwatchChoice> TextSwatches { get; }
     public IReadOnlyList<SwatchChoice> PenSwatches { get; }
@@ -204,7 +204,7 @@ public sealed partial class EditorViewModel
 
     // ---------------------------------------------------------------- text settings (the chosen texts, or the next new one)
 
-    string _textColor = "#FFFFFF", _penColor = "#F48BA4", _shapeColor = "#F48BA4";
+    string _textColor = "#FFFFFF", _penColor = "#FF8F6B", _shapeColor = "#FF8F6B";
     double _textSize = 0.06, _penThickness = 0.008, _shapeThickness = 0.008;
     TextEffect _textEffect = TextEffect.Box;
     string _textFont = TextFonts.Default;

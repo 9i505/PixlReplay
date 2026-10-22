@@ -69,6 +69,8 @@ public sealed class EngineApp : ApplicationContext
         if (firstRun || chosen)
             SettingsStore.Save(SettingsStore.DefaultPath, _settings);
         Text.Language = _settings.General.Language;
+        ThemeColors.Use(_settings.Look);
+        _tray.Redraw();
         if (pickedKeys)
             _toast.Show(Text.Get("toast.keysPicked"), Text.Format("toast.keysPickedSave", _settings.Hotkeys.Save), Text.IsRightToLeft);
 
@@ -745,6 +747,15 @@ public sealed class EngineApp : ApplicationContext
             case "hotkeys-typed": _hotkeys.Resume(); break;
             case "update-check": CheckForUpdate(); break;
             case "update-download": _ = DownloadUpdate(); break;
+            case "look":
+                // The Look page saved new colors: the tray icon, its menu and the toasts follow.
+                _ui.BeginInvoke(() =>
+                {
+                    _settings.Look = SettingsStore.Load(SettingsStore.DefaultPath).Look;
+                    ThemeColors.Use(_settings.Look);
+                    _tray.Redraw();
+                });
+                break;
             case "exit":
                 _ui.BeginInvoke(() => Shutdown("the exit command"));
                 return JsonSerializer.Serialize(new { exiting = true }, Ipc.Json);

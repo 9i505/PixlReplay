@@ -452,13 +452,13 @@ public sealed class EditTimeline : FrameworkElement
         return r;
     }
 
-    static readonly Brush DarkText = Freeze(new SolidColorBrush(Color.FromRgb(0x22, 0x1C, 0x1B)));
-    static readonly Brush BoxFill = Freeze(new SolidColorBrush(Color.FromArgb(0x26, 0xF4, 0x8B, 0xA4)));
-    static readonly Pen BoxEdge = Freeze(new Pen(Freeze(new SolidColorBrush(Color.FromRgb(0xF4, 0x8B, 0xA4))), 1.25) { DashStyle = DashStyles.Dash });
+    static readonly Brush DarkText = Freeze(new SolidColorBrush(Color.FromRgb(0x16, 0x16, 0x1A)));
+    static readonly Brush BoxFill = ThemeAccent.Brush(Settings.ThemeColors.Accent, 0x26);
+    static readonly Pen BoxEdge = Freeze(new Pen(ThemeAccent.Brush(Settings.ThemeColors.Accent), 1.25) { DashStyle = DashStyles.Dash });
     static readonly Pen ChosenRing = Freeze(new Pen(Brushes.White, 2));
     static readonly Pen ChosenInner = Freeze(new Pen(DarkText, 1));
-    static readonly Pen DarkEdge = Freeze(new Pen(Freeze(new SolidColorBrush(Color.FromRgb(0x8A, 0x78, 0x75))), 1));
-    static readonly Pen Stripe = Freeze(new Pen(Freeze(new SolidColorBrush(Color.FromArgb(0x70, 0x2E, 0x27, 0x26))), 2));
+    static readonly Pen DarkEdge = Freeze(new Pen(Freeze(new SolidColorBrush(Color.FromRgb(0x7C, 0x7C, 0x80))), 1));
+    static readonly Pen Stripe = Freeze(new Pen(Freeze(new SolidColorBrush(Color.FromArgb(0x70, 0x1C, 0x1C, 0x21))), 2));
 
     static bool HasArabic(string s) => s.Any(c => c is >= '\u0600' and <= '\u06FF');
 
@@ -475,7 +475,7 @@ public sealed class EditTimeline : FrameworkElement
             ShapeItem s => s.ColorHex,
             _ => null,
         };
-        return hex != null ? (Color)ColorConverter.ConvertFromString(hex) : Color.FromRgb(0xA8, 0x9C, 0x99);
+        return hex != null ? (Color)ColorConverter.ConvertFromString(hex) : Color.FromRgb(0xA1, 0xA1, 0xA4);
     }
 
     /// <summary>The icon on a bar: what kind of thing it is (Segoe Fluent Icons).</summary>

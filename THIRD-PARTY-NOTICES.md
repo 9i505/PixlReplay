@@ -1,6 +1,8 @@
 # Third-party notices
 
-PixlReplay's own source code is licensed under the GNU General Public License, version 2 or (at your option) any later version. See [LICENSE](LICENSE).
+Pixl Replay's own source code is licensed under the GNU General Public License, version 2 or (at your option) any later version. See [LICENSE](LICENSE).
+
+Pixl Replay is a modified version of Kairos 1.0.1 (<https://github.com/BasilForge/Kairos>, GPL-2.0-or-later). 9i55 changed it in October 2026: the name, the logo and icons, the colors, and the Look page (themes, colors, font, size and a background picture). The changes are in this repository's history.
 
 Release builds include the following components, copied unmodified from OBS Studio 32.2.2 (<https://github.com/obsproject/obs-studio>).
 
@@ -75,8 +77,4 @@ The X, TikTok and Instagram marks in the share panel are trademarks of their own
 
 The emoji pictures in the caption picker (`src/PixlReplay/Ui/Assets/Emoji`) are Microsoft's Fluent Emoji designs as Windows 11 draws them (Segoe UI Emoji), MIT License, Copyright (c) Microsoft Corporation, <https://github.com/microsoft/fluentui-emoji>.
 
-## Wordmark fonts (in the name images only)
-
-The name in the sidebar (`src/PixlReplay/Ui/Assets/wordmark-en.png`, `wordmark-ar.png`) is drawn from
-**Fraunces** (Undercase Type) and **Aref Ruqaa** (Abdullah Aref), both under the SIL Open Font License 1.1.
-The fonts themselves are not shipped.
+The Look page can also use any font installed on the PC; those fonts are Windows' or the user's own and are not redistributed.

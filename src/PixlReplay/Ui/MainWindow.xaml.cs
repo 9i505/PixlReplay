@@ -79,11 +79,12 @@ public partial class MainWindow : Window
         Closed += (_, _) => HotkeyBox.TypingChanged -= typing;
         _vm.SetTypingHotkey(false); // nothing left over from a window that closed while typing
         Title = Text.Get("app");
-        // Drawn once from Fraunces (Kai + italic ro) and Aref Ruqaa (كا + slanted يرو), six times the size shown.
-        Wordmark.Source = new System.Windows.Media.Imaging.BitmapImage(
-            new Uri($"pack://application:,,,/PixlReplay;component/Ui/Assets/wordmark-{(Text.IsArabic ? "ar" : "en")}.png"));
-        Wordmark.Height = Text.IsArabic ? 28 : 22;
         FlowDirection = Text.IsRightToLeft ? FlowDirection.RightToLeft : FlowDirection.LeftToRight;
+        // The Look page's picture and size, now and whenever they change.
+        Action<Settings.LookSettings> look = ShowLook;
+        ThemeAccent.Changed += look;
+        Closed += (_, _) => ThemeAccent.Changed -= look;
+        ShowLook(ThemeAccent.Current);
         SettingsApp.StartupTrace?.Invoke("window wiring");
 
         _pages = new()
@@ -101,12 +102,14 @@ public partial class MainWindow : Window
                 return new ConnectionsPage { DataContext = _accounts };
             },
             ["general"] = () => new GeneralPage(),
+            ["look"] = () => new LookPage(),
         };
 
         foreach (var (button, page) in new (RadioButton, string)[]
                  {
                      (NavStatus, "status"), (NavClips, "clips"), (NavCapture, "capture"), (NavQuality, "quality"),
-                     (NavAudio, "audio"), (NavHotkeys, "hotkeys"), (NavVoice, "voice"), (NavConnections, "connections"), (NavGeneral, "general"),
+                     (NavAudio, "audio"), (NavHotkeys, "hotkeys"), (NavVoice, "voice"), (NavConnections, "connections"),
+                     (NavLook, "look"), (NavGeneral, "general"),
                  })
         {
             button.Checked += (_, _) => ShowPage(page);
@@ -155,11 +158,53 @@ public partial class MainWindow : Window
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
+        FrameColors();
+    }
+
+    /// <summary>Windows' frame in the theme: dark or light, rounded, its edge in the Stroke color.</summary>
+    void FrameColors()
+    {
         IntPtr hwnd = new System.Windows.Interop.WindowInteropHelper(this).Handle;
-        int dark = 1, round = 2 /* DWMWCP_ROUND */, border = 0x0041424E; // COLORREF of #4E4241 (BGR), the Stroke color
+        if (hwnd == IntPtr.Zero)
+            return;
+        uint stroke = Settings.ThemeColors.Stroke;
+        int dark = Settings.ThemeColors.IsLight ? 0 : 1, round = 2 /* DWMWCP_ROUND */;
+        int border = (int)(((stroke & 0xFF) << 16) | (stroke & 0xFF00) | ((stroke >> 16) & 0xFF)); // COLORREF (BGR)
         DwmSetWindowAttribute(hwnd, 20 /* USE_IMMERSIVE_DARK_MODE */, ref dark, sizeof(int));
         DwmSetWindowAttribute(hwnd, 33 /* WINDOW_CORNER_PREFERENCE */, ref round, sizeof(int));
         DwmSetWindowAttribute(hwnd, 34 /* BORDER_COLOR */, ref border, sizeof(int));
+    }
+
+    double _scale = 1;
+
+    /// <summary>
+    /// The Look page's picture behind the window (blurred and veiled in the background color, the panels over it
+    /// see-through) and the window's size: everything drawn bigger or smaller, the smallest window with it.
+    /// </summary>
+    void ShowLook(Settings.LookSettings look)
+    {
+        var picture = ThemeAccent.Picture(look);
+        Backdrop.Visibility = picture != null ? Visibility.Visible : Visibility.Collapsed;
+        BackdropImage.Source = picture;
+        if (picture != null)
+        {
+            double blur = look.PictureBlur;
+            BackdropImage.Effect = blur > 0 ? new System.Windows.Media.Effects.BlurEffect { Radius = blur, RenderingBias = System.Windows.Media.Effects.RenderingBias.Performance } : null;
+            // The blur fades the picture's edges: drawn a little larger, they fall outside the window.
+            BackdropImage.Margin = new Thickness(-blur * 1.5);
+            BackdropVeil.Fill = ThemeAccent.Brush(Settings.ThemeColors.Background, (byte)Math.Round(255 * look.PictureDim));
+        }
+
+        if (Math.Abs(look.Size - _scale) > 0.001)
+        {
+            _scale = look.Size;
+            Root.LayoutTransform = _scale == 1 ? System.Windows.Media.Transform.Identity : new System.Windows.Media.ScaleTransform(_scale, _scale);
+            MinWidth = 860 * _scale;
+            MinHeight = 580 * _scale;
+            if (System.Windows.Shell.WindowChrome.GetWindowChrome(this) is { } chrome)
+                chrome.CaptionHeight = 40 * _scale;
+        }
+        FrameColors();
     }
 
     [System.Runtime.InteropServices.DllImport("dwmapi.dll")]

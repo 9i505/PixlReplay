@@ -22,8 +22,9 @@ public sealed class LevelBar : FrameworkElement
             new GradientStop(Color.FromRgb(0xFF, 0xC9, 0x3C), 0.85),
             new GradientStop(Color.FromRgb(0xFF, 0x4A, 0x5E), 1.0),
         ], 0));
-    static readonly Brush Track = Frozen(new SolidColorBrush(Color.FromRgb(0x4E, 0x42, 0x41)));
-    static readonly Brush Marker = Frozen(new SolidColorBrush(Color.FromRgb(0xF5, 0xEC, 0xEA)));
+    // The theme's hairline and text (the Look page's colors, read when the window opens).
+    static readonly Brush Track = ThemeAccent.Brush(Settings.ThemeColors.Stroke);
+    static readonly Brush Marker = ThemeAccent.Brush(Settings.ThemeColors.Text);
 
     static LevelStream? _stream;
     static int _users;

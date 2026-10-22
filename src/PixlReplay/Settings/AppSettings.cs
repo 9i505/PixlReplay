@@ -24,6 +24,7 @@ public sealed class AppSettings
     public GeneralSettings General { get; set; } = new();
     public VoiceSettings Voice { get; set; } = new();
     public ShareSettings Share { get; set; } = new();
+    public LookSettings Look { get; set; } = new();
 
     /// <summary>
     /// Windows' own language when PixlReplay speaks it: the culture or one it falls back to (zh-CN is zh-Hans, es-MX is
@@ -52,6 +53,8 @@ public sealed class AppSettings
         General ??= new();
         Voice ??= new();
         Share ??= new();
+        Look ??= new();
+        Look.Normalize();
 
         Capture.MonitorId ??= "";
         Capture.Window ??= "";
@@ -204,6 +207,61 @@ public sealed class VoiceSettings
         };
         return Math.Min(MaxThreshold, Math.Max(floor, factor * spread));
     }
+}
+
+/// <summary>
+/// The Look page: the window's colors, font and size, and a picture behind it. Saved the moment it changes (no Apply),
+/// like the share choices, and the engine draws its tray icon and toasts in the same colors.
+/// </summary>
+public sealed class LookSettings
+{
+    public const string DefaultAccent = "#FF5A64";
+    public const string DefaultBackground = "#1C1C21";
+    public const string DefaultText = "#F2F2F5";
+    public const double MinSize = 0.8, MaxSize = 1.4;
+
+    public string Accent { get; set; } = DefaultAccent;
+    public string Background { get; set; } = DefaultBackground;
+    public string Text { get; set; } = DefaultText;
+    /// <summary>"" is Segoe UI; "app:cairo" one of the fonts shipped in fonts\; anything else an installed font's name.</summary>
+    public string Font { get; set; } = "";
+    /// <summary>The whole window's size (1 = as designed).</summary>
+    public double Size { get; set; } = 1;
+    /// <summary>A picture behind the window, kept in the data folder (empty: none).</summary>
+    public string Picture { get; set; } = "";
+    /// <summary>How much the window's background color covers the picture (0 = the picture as it is).</summary>
+    public double PictureDim { get; set; } = 0.45;
+    /// <summary>Blur over the picture, in pixels.</summary>
+    public double PictureBlur { get; set; }
+    /// <summary>How solid the side bar and the cards are over the picture (1 = no picture shows through them).</summary>
+    public double Panels { get; set; } = 0.8;
+
+    public bool HasPicture => Picture.Length > 0 && File.Exists(Picture);
+
+    public void Normalize()
+    {
+        Accent = Clean(Accent, DefaultAccent);
+        Background = Clean(Background, DefaultBackground);
+        Text = Clean(Text, DefaultText);
+        Font ??= "";
+        Picture ??= "";
+        Size = double.IsFinite(Size) ? Math.Round(Math.Clamp(Size, MinSize, MaxSize), 2) : 1;
+        PictureDim = double.IsFinite(PictureDim) ? Math.Clamp(PictureDim, 0, 0.95) : 0.45;
+        PictureBlur = double.IsFinite(PictureBlur) ? Math.Clamp(PictureBlur, 0, 40) : 0;
+        Panels = double.IsFinite(Panels) ? Math.Clamp(Panels, 0.2, 1) : 0.8;
+    }
+
+    public LookSettings Copy() => (LookSettings)MemberwiseClone();
+
+    /// <summary>"#RRGGBB" as 0xRRGGBB; anything else is black.</summary>
+    public static uint Parse(string hex) =>
+        hex is ['#', .. var digits] && digits.Length == 6 && uint.TryParse(digits, System.Globalization.NumberStyles.HexNumber, null, out uint rgb) ? rgb : 0;
+
+    public static string Hex(uint rgb) => $"#{rgb & 0xFFFFFF:X6}";
+
+    static string Clean(string? hex, string fallback) =>
+        hex is ['#', .. var digits] && digits.Length == 6 && uint.TryParse(digits, System.Globalization.NumberStyles.HexNumber, null, out _)
+            ? hex.ToUpperInvariant() : fallback;
 }
 
 /// <summary>The share window's last choices, so the next share starts where the user left off.</summary>

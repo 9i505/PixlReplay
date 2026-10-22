@@ -83,7 +83,7 @@ public static class ThemeCursors
 
     // ---------------------------------------------------------------- Windows' pointer
 
-    static readonly Color Edge = Color.FromRgb(0x14, 0x10, 0x10);
+    static readonly Color Edge = Color.FromRgb(0x12, 0x12, 0x15);
 
     static int Id(Shape shape) => shape switch
     {

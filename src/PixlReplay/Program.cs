@@ -65,6 +65,14 @@ public static class Program
                 File.WriteAllBytes(args[1], AppIconArt.Ico());
                 Console.WriteLine($"wrote {args[1]}");
                 return 0;
+            case "--write-wizard":
+                // PixlReplay.exe --write-wizard <installer folder>: the install wizard's pictures from the same drawing.
+                using (var wizard = AppIconArt.Wizard(328, 628))
+                    wizard.Save(Path.Combine(args[1], "wizard.png"), System.Drawing.Imaging.ImageFormat.Png);
+                using (var small = AppIconArt.Draw(116, Settings.ThemeColors.Accent))
+                    small.Save(Path.Combine(args[1], "wizard-small.png"), System.Drawing.Imaging.ImageFormat.Png);
+                Console.WriteLine($"wrote the wizard's pictures in {args[1]}");
+                return 0;
             case "--perf":
                 return Ui.SettingsApp.Perf(args);
             case "--voice-info":

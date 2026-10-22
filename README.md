@@ -1,116 +1,106 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/media/logo-dark.png">
-    <img src="docs/media/logo-light.png" alt="PixlReplay" width="360">
-  </picture>
+  <img src="docs/icon.png" alt="Pixl Replay" width="120">
 </p>
 
-<h3 align="center">Instant replay for Windows games.</h3>
+<h1 align="center">Pixl Replay</h1>
 
 <p align="center">
-  Press a key or say your phrase, and the last five minutes are saved.<br>
-  Free, open source, offline, and so light you'll forget it's on.
+  Instant replay for Windows games, from the Pixl family.<br>
+  Press a key or say your phrase, and the last minutes are saved.
 </p>
 
 <p align="center">
-  <a href="https://github.com/9i55/PixlReplay/releases/latest"><img src="https://img.shields.io/badge/Download-Windows%2010%20%7C%2011-F48BA4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
-  <img src="https://img.shields.io/badge/license-GPL--2.0-3A3130?style=for-the-badge" alt="License: GPL-2.0">
-  <img src="https://img.shields.io/badge/languages-7-3A3130?style=for-the-badge" alt="7 languages">
+  <a href="https://github.com/9i55/PixlReplay/releases/latest"><img src="https://img.shields.io/badge/Download-Windows%2010%20%7C%2011-FF5A64?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
+  <img src="https://img.shields.io/badge/license-GPL--2.0-28282D?style=for-the-badge" alt="License: GPL-2.0">
 </p>
 
 <p align="center">
-  <b>English</b> ·
-  <a href="docs/README.ar.md">العربية</a> ·
-  <a href="docs/README.zh-Hans.md">简体中文</a> ·
-  <a href="docs/README.ru.md">Русский</a> ·
-  <a href="docs/README.es.md">Español</a> ·
-  <a href="docs/README.pt-BR.md">Português (Brasil)</a> ·
-  <a href="docs/README.de.md">Deutsch</a>
+  <img src="docs/status.png" alt="Pixl Replay" width="720">
 </p>
 
-https://github.com/user-attachments/assets/c7afb475-f4a2-4356-acc5-327935e879e2
+<div dir="rtl">
 
-## Why PixlReplay
+## بالعربي
 
-- **Never miss the moment.** PixlReplay keeps the last 15 seconds to 20 minutes in memory (5 by default). Press `Alt+F10` and it becomes a clip.
-- **Smart Save.** Record a phrase of your own, in any language, then just say it to save a clip or take a screenshot. It runs offline.
-- **Light.** It records on your graphics card. Measured while a game ran at 1440p60 AV1: 0.4% CPU, no dropped frames.
-- **Edit in place.** Cut, change the speed, add text, draw, blur, and make auto captions on your own PC.
-- **Share in one press.** Post to X, TikTok and Instagram, or all three at once with one caption, or copy the clip and paste it anywhere.
-- **Private.** No account, no telemetry. Your clips stay on your PC until you share them.
+**Pixl Replay** يسجّل آخر دقائق من لعبك في الخلفية، ويوم يصير شي يستاهل تضغط `Alt+F10` (أو تقول جملتك) ويحفظه لك كمقطع.
 
-## Screenshots
+### المميزات
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/media/screens/en/status.webp" alt="Status"><p align="center"><sub>Instant replay, recording and screenshots at a glance</sub></p></td>
-    <td width="50%"><img src="docs/media/screens/en/library.webp" alt="Library"><p align="center"><sub>Every clip and screenshot, by day and by game</sub></p></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/media/screens/en/editor.webp" alt="Editor"><p align="center"><sub>The editor, with auto captions made on your PC</sub></p></td>
-    <td width="50%"><img src="docs/media/screens/en/share.webp" alt="Share"><p align="center"><sub>Post to X, TikTok and Instagram for you</sub></p></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/media/screens/en/smart-save.webp" alt="Smart Save"><p align="center"><sub>Smart Save: say your phrase to save</sub></p></td>
-    <td width="50%"><img src="docs/media/screens/en/accounts.webp" alt="Accounts"><p align="center"><sub>Sign in once; sign-ins stay on your PC</sub></p></td>
-  </tr>
-</table>
+- **الإعادة الفورية:** يحتفظ بآخر 15 ثانية إلى 20 دقيقة (5 دقائق افتراضيًا) ويحفظها بضغطة.
+- **الحفظ الذكي:** سجّل جملة بصوتك، وقلها وقت اللعب عشان يحفظ المقطع أو ياخذ صورة. يشتغل بدون إنترنت.
+- **خفيف:** يسجّل على كرت الشاشة (NVIDIA و AMD و Intel)، وما تحس فيه.
+- **محرّر:** قص، سرعة، نصوص، رسم، تمويه، وترجمة تلقائية على جهازك.
+- **مشاركة:** انشر على X و TikTok و Instagram، أو انسخ المقطع والصقه وين ما تبي.
+- **المظهر (جديد):** صفحة كاملة تخصّص فيها البرنامج على ذوقك:
+  - ثيمات جاهزة (Pixl Replay و Pixl ومنتصف الليل وغابة وبنفسجي ووردي وذهبي وفاتح)
+  - تختار لون أساسي ولون خلفية ولون نص، من الألوان الجاهزة أو أي لون تبيه
+  - تختار الخط (أي خط مثبّت في ويندوز، أو خطوط عربية جاهزة مثل Cairo و Tajawal)
+  - تكبّر أو تصغّر كل النافذة (80% إلى 140%)
+  - تحط صورة خلفية خلف النافذة، مع التعتيم والضبابية ووضوح البطاقات
+  - زر يرجّع كل شي للافتراضي
+  - التغيير يظهر ويُحفظ فورًا، وأيقونة البرنامج جنب الساعة تاخذ نفس اللون
 
-## Download
+### التحميل
+
+1. نزّل **PixlReplay-Setup.exe** من [آخر إصدار](https://github.com/9i55/PixlReplay/releases/latest).
+2. شغّله واختر اللغة والمجلد (ما يحتاج صلاحيات مسؤول).
+3. العب، واضغط `Alt+F10` يوم يصير شي.
+
+لو طلع لك تحذير من ويندوز: اضغط **More info** ثم **Run anyway**.
+التحديثات تجيك من داخل البرنامج.
+
+**يحتاج:** ويندوز 10 (2004 أو أحدث) أو ويندوز 11، 64-بت.
+
+</div>
+
+<p align="center">
+  <img src="docs/look.png" alt="صفحة المظهر" width="720">
+</p>
+
+## English
+
+**Pixl Replay** keeps the last minutes of your game in memory. When something happens, press `Alt+F10` (or say your phrase) and it becomes a clip.
+
+- **Instant replay:** keeps 15 seconds to 20 minutes (5 by default) and saves it in one press.
+- **Smart Save:** record a phrase in your own voice and say it to save a clip or take a screenshot. Works offline.
+- **Light:** records on your graphics card (NVIDIA, AMD or Intel).
+- **Editor:** cut, speed, text, drawing, blur, and auto captions on your own PC.
+- **Share:** post to X, TikTok and Instagram, or copy the clip and paste it anywhere.
+- **Look (new):** make it yours.
+  - Ready-made themes.
+  - Your own accent, background and text colors.
+  - Any installed font.
+  - The whole window from 80% to 140%.
+  - A background picture, with darken, blur and panel opacity.
+  - Changes show and save at once, and the tray icon follows the colors.
+
+<p align="center">
+  <img src="docs/light.png" alt="The light theme" width="720">
+</p>
+
+### Download
 
 1. Download **PixlReplay-Setup.exe** from the [latest release](https://github.com/9i55/PixlReplay/releases/latest).
-2. Run it and follow the steps: pick your language and the folder (no administrator rights needed), and whether you want a desktop shortcut and PixlReplay to start with Windows.
+2. Run it, pick your language and folder (no administrator rights needed).
 3. Play, then press `Alt+F10` when something happens.
 
-Windows may warn about an unknown publisher (the installer is not signed yet): choose **More info**, then **Run anyway**.
-Updates come from inside the app, and never during a recording. Uninstalling keeps your clips and settings.
+**Needs:** Windows 10 (2004 or newer) or Windows 11, 64-bit.
 
-**Needs:** Windows 10 (2004 or newer) or Windows 11, 64-bit. A graphics card with a video encoder (NVIDIA, AMD or Intel) is recommended.
+### Build from source
 
-## Features
-
-<details>
-<summary>Everything PixlReplay does</summary>
-
-- **Capture:** full screen, one window, or games (picked up automatically), up to 4K at 30 to 240 fps.
-- **Encoding:** AV1, HEVC or H.264 on NVIDIA (NVENC), AMD (AMF) or Intel (Quick Sync), with x264 as a fallback.
-- **Audio:** system sound and microphone, optionally on separate tracks.
-- **Recording:** start, pause and stop with hotkeys; a paused recording stays one file.
-- **Screenshots** with their own hotkey, saved beside your clips.
-- **Library:** clips and screenshots by day, filtered by game, with a folder size limit that sends the oldest to the Recycle Bin.
-- **Editor:** cut and join, speed and sound per part, text in many fonts and styles, auto captions, drawing, shapes, blur, filters, and crop for screenshots.
-- **Auto captions:** Whisper on your graphics card. The engine and model are downloaded once, after you agree, and can be removed in Settings.
-- **Share:** X, TikTok, Instagram, or all of them, through each site's own page; trim on a frame strip and crop to 9:16.
-- **Seven languages:** English, Arabic, Chinese, Russian, Spanish, Portuguese and German. The first run follows your Windows language.
-- **Quiet:** starts with Windows in the tray, with no pop-ups or sounds unless you turn them on.
-
-</details>
-
-## Privacy
-
-- No telemetry, no analytics, no PixlReplay account.
-- PixlReplay goes online only when you ask: to post what you share, to download auto captions once, and to check this page for a newer version once a day (you can turn that off).
-- Smart Save and auto captions listen on your PC only.
-
-## Build from source
-
-<details>
-<summary>For developers</summary>
-
-PixlReplay is a .NET 10 app (WPF and WinForms) that hosts **libobs**, the engine of [OBS Studio](https://obsproject.com), with only the modules it needs, and uses FFmpeg for editing and sharing.
+Pixl Replay is a .NET 10 app (WPF and WinForms) that hosts **libobs**, the engine of [OBS Studio](https://obsproject.com), and uses FFmpeg for editing and sharing.
 
 ```powershell
-.\tools\build-whisper.ps1               # once: the auto captions engine (needs the Vulkan SDK and VS Build Tools)
-.\tools\release.ps1                     # the Setup, update files and source zip in releases\ (needs vpk 1.2.161)
-dotnet run --project tests\PixlReplay.Tests # the tests
+dotnet build src\PixlReplay\PixlReplay.csproj -c Release
+dotnet run --project tests\PixlReplay.Tests -c Release   # the tests
+.\tools\make-icon.ps1                                     # app.ico and the installer pictures from the logo's drawing
+.\tools\release.ps1                                       # the Setup, update files and source zip in releases\
 ```
 
 The build copies libobs 32.2.2 from an installed OBS Studio.
 
-</details>
-
 ## License
 
-PixlReplay is free software under the [GNU General Public License v2.0 or later](LICENSE), the same license as libobs. Every release includes its complete source code. Third-party components and their licenses are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+Pixl Replay is free software under the [GNU General Public License v2.0 or later](LICENSE). Every release includes its complete source code. Components and their licenses are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
-<sub>*PixlReplay* (καιρός) is Greek for *the right moment*.</sub>
+Made by **9i55**.

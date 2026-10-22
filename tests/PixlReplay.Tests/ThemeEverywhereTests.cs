@@ -43,16 +43,16 @@ public static class ThemeEverywhereTests
         var surface = Of("Surface");
         var stroke = Of("Stroke");
         foreach (string key in new[] { "ComboBoxDropDownBackground", "ContextMenuBackground", "FlyoutBackground", "ToolTipBackground" })
-            Assert.Equal(surface, Of(key), $"{key}: the cards' warm brown (Fluent's own is grey #2C2C2C)");
+            Assert.Equal(surface, Of(key), $"{key}: the cards' color (Fluent's own is grey #2C2C2C)");
         foreach (string key in new[] { "ComboBoxDropDownBorderBrush", "ContextMenuBorderBrush", "FlyoutBorderBrush", "ToolTipBorderBrush" })
             Assert.Equal(stroke, Of(key), $"{key}: the cards' hairline");
         var hover = Of("ComboBoxItemBackgroundSelected");
-        Assert.True(hover.A == 255 && hover.R > hover.B && hover != surface, $"a highlighted entry is a warm shade of the list ({hover})");
+        Assert.True(hover.A == 255 && hover != surface && hover.R > surface.R, $"a highlighted entry is a lighter shade of the list ({hover})");
 
         var r = new System.Windows.ResourceDictionary();
         ThemeAccent.Apply(r);
         Assert.Equal(Rgb(ThemeColors.Accent), ((SolidColorBrush)r["ComboBoxItemPillFillBrush"]).Color,
-            "the bar beside the chosen entry is rose (Fluent's own is grey #606060)");
+            "the bar beside the chosen entry is the accent (Fluent's own is grey #606060)");
     });
 
     [Test]
@@ -80,7 +80,7 @@ public static class ThemeEverywhereTests
                     white++;
             }
         int background = counts.MaxBy(c => c.Value).Key;
-        Assert.Equal(ThemeColors.Background, (uint)background, $"the menu's fill is the window's brown, not #{background:X6}");
+        Assert.Equal(ThemeColors.Background, (uint)background, $"the menu's fill is the window's background, not #{background:X6}");
         Assert.True(light > 20, "with light text on it");
         Assert.True(white < light / 4, $"nothing white-on-white Windows look ({white} pure white pixels)");
     });
@@ -91,7 +91,7 @@ public static class ThemeEverywhereTests
         foreach (string language in new[] { "en", "ar" })
         {
             Text.Language = language;
-            Assert.Equal("PixlReplay", TrayController.Tooltip, $"{language}: no state text");
+            Assert.Equal("Pixl Replay", TrayController.Tooltip, $"{language}: no state text");
         }
         Text.Language = "en";
     }

@@ -15,7 +15,7 @@
                             <Ellipse Width="10" Height="10" Margin="0,0,6,0">
                                 <Ellipse.Style>
                                     <Style TargetType="Ellipse">
-                                        <Setter Property="Fill" Value="{StaticResource StrokeStrong}"/>
+                                        <Setter Property="Fill" Value="{DynamicResource StrokeStrong}"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding VoiceDone1}" Value="True"><Setter Property="Fill" Value="{DynamicResource Accent}"/></DataTrigger>
                                         </Style.Triggers>
@@ -25,7 +25,7 @@
                             <Ellipse Width="10" Height="10" Margin="0,0,6,0">
                                 <Ellipse.Style>
                                     <Style TargetType="Ellipse">
-                                        <Setter Property="Fill" Value="{StaticResource StrokeStrong}"/>
+                                        <Setter Property="Fill" Value="{DynamicResource StrokeStrong}"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding VoiceDone2}" Value="True"><Setter Property="Fill" Value="{DynamicResource Accent}"/></DataTrigger>
                                         </Style.Triggers>
@@ -35,7 +35,7 @@
                             <Ellipse Width="10" Height="10" Margin="0,0,14,0">
                                 <Ellipse.Style>
                                     <Style TargetType="Ellipse">
-                                        <Setter Property="Fill" Value="{StaticResource StrokeStrong}"/>
+                                        <Setter Property="Fill" Value="{DynamicResource StrokeStrong}"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding VoiceDone3}" Value="True"><Setter Property="Fill" Value="{DynamicResource Accent}"/></DataTrigger>
                                         </Style.Triggers>
@@ -47,7 +47,7 @@
                         <Button Grid.Column="1" Style="{StaticResource Ghost}" Content="{l:T voice.cancel}" Command="{Binding VoiceCancelCommand}"/>
                     </Grid>
                     <l:LevelBar Channel="mic" Margin="0,16,0,0" AutomationProperties.Name="{l:T audio.level}"/>
-                    <TextBlock Text="{Binding VoiceMessage}" Foreground="{StaticResource Warning}" Margin="0,12,0,0" TextWrapping="Wrap"
+                    <TextBlock Text="{Binding VoiceMessage}" Foreground="{DynamicResource Warning}" Margin="0,12,0,0" TextWrapping="Wrap"
                                Visibility="{Binding VoiceMessage, Converter={StaticResource Vis}}"/>
                 </StackPanel>
         </DataTemplate>
@@ -72,15 +72,15 @@
                         <TextBlock Text="{Binding VoiceResult}" FontWeight="SemiBold" VerticalAlignment="Center">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
-                                    <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding VoiceLastMatch}" Value="True"><Setter Property="Foreground" Value="{StaticResource Success}"/></DataTrigger>
+                                        <DataTrigger Binding="{Binding VoiceLastMatch}" Value="True"><Setter Property="Foreground" Value="{DynamicResource Success}"/></DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
                         <ProgressBar Grid.Column="1" Height="6" Minimum="0" Maximum="1" Value="{Binding VoiceStrength, Mode=OneWay}" Margin="16,0"
-                                     Foreground="{DynamicResource Accent}" Background="{StaticResource Stroke}" BorderThickness="0" VerticalAlignment="Center"
+                                     Foreground="{DynamicResource Accent}" Background="{DynamicResource Stroke}" BorderThickness="0" VerticalAlignment="Center"
                                      AutomationProperties.Name="{l:T voice.strength}"/>
                         <TextBlock Grid.Column="2" Style="{StaticResource Caption}" Text="{l:T voice.strength}" VerticalAlignment="Center"/>
                     </Grid>
@@ -131,8 +131,8 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource SuccessSoft}" VerticalAlignment="Center">
-                        <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="13" Foreground="{StaticResource Success}"
+                    <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource SuccessSoft}" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="13" Foreground="{DynamicResource Success}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource Label}" Text="{l:T voice.ready}" Margin="12,0,0,0" VerticalAlignment="Center"/>
@@ -154,7 +154,7 @@
                 <ContentControl Margin="0,14,0,0" Content="{Binding}" ContentTemplate="{StaticResource Testing}" Focusable="False"
                                 Visibility="{Binding VoiceView, Converter={StaticResource EqVis}, ConverterParameter=testing}"/>
 
-                <TextBlock Text="{Binding VoiceNote}" Foreground="{StaticResource Warning}" Margin="0,12,0,0" TextWrapping="Wrap"
+                <TextBlock Text="{Binding VoiceNote}" Foreground="{DynamicResource Warning}" Margin="0,12,0,0" TextWrapping="Wrap"
                            Visibility="{Binding VoiceNote, Converter={StaticResource Vis}}"/>
             </StackPanel>
         </Border>
@@ -183,8 +183,8 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Border Width="28" Height="28" CornerRadius="14" Background="{StaticResource SuccessSoft}" VerticalAlignment="Center">
-                        <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="13" Foreground="{StaticResource Success}"
+                    <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource SuccessSoft}" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="13" Foreground="{DynamicResource Success}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource Label}" Text="{l:T voice.shotReady}" Margin="12,0,0,0" VerticalAlignment="Center"/>

@@ -16,8 +16,8 @@
         </Style>
         <!-- A slim line when something needs attention: a small icon, one sentence, at most one button -->
         <Style x:Key="Notice" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource Surface}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Stroke}"/>
+            <Setter Property="Background" Value="{DynamicResource Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Stroke}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="Padding" Value="14,6"/>
@@ -27,7 +27,7 @@
         <Style x:Key="NoticeIcon" TargetType="TextBlock" BasedOn="{StaticResource Icon}">
             <Setter Property="Text" Value="&#xE7BA;"/>
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Foreground" Value="{StaticResource Warning}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Warning}"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,10,0"/>
         </Style>
@@ -61,10 +61,10 @@
                     <Ellipse>
                         <Ellipse.Style>
                             <Style TargetType="Ellipse">
-                                <Setter Property="Fill" Value="{StaticResource IdleSoft}"/>
+                                <Setter Property="Fill" Value="{DynamicResource IdleSoft}"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding State}" Value="active"><Setter Property="Fill" Value="{DynamicResource AccentSoft}"/></DataTrigger>
-                                    <DataTrigger Binding="{Binding State}" Value="error"><Setter Property="Fill" Value="{StaticResource WarningSoft}"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding State}" Value="error"><Setter Property="Fill" Value="{DynamicResource WarningSoft}"/></DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Ellipse.Style>
@@ -72,10 +72,10 @@
                     <Ellipse Width="16" Height="16">
                         <Ellipse.Style>
                             <Style TargetType="Ellipse">
-                                <Setter Property="Fill" Value="{StaticResource Idle}"/>
+                                <Setter Property="Fill" Value="{DynamicResource Idle}"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding State}" Value="active"><Setter Property="Fill" Value="{DynamicResource Accent}"/></DataTrigger>
-                                    <DataTrigger Binding="{Binding State}" Value="error"><Setter Property="Fill" Value="{StaticResource Warning}"/></DataTrigger>
+                                    <DataTrigger Binding="{Binding State}" Value="error"><Setter Property="Fill" Value="{DynamicResource Warning}"/></DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Ellipse.Style>
@@ -111,7 +111,7 @@
                                 <TextBlock Text="{Binding HkSave}" FontSize="9.5"/>
                             </Border>
                             <!-- Another app holds the save key: said here too, not only on the Hotkeys page -->
-                            <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{DynamicResource Warning}" Margin="6,1,0,0"
                                        VerticalAlignment="Center" ToolTip="{Binding SaveKey.TakenText}" AutomationProperties.Name="{Binding SaveKey.TakenText}"
                                        Visibility="{Binding SaveKey.Taken, Converter={StaticResource Vis}}"/>
                         </StackPanel>
@@ -130,7 +130,7 @@
                         <TextBlock Text="{l:T status.buffer}" Style="{StaticResource Caption}" Margin="0"/>
                         <TextBlock Style="{StaticResource Value}" Text="{Binding BufferText}" Margin="0,6,0,8"/>
                         <ProgressBar Height="4" Minimum="0" Maximum="1" Value="{Binding BufferProgress, Mode=OneWay}"
-                                     Foreground="{DynamicResource Accent}" Background="{StaticResource Stroke}" BorderThickness="0"/>
+                                     Foreground="{DynamicResource Accent}" Background="{DynamicResource Stroke}" BorderThickness="0"/>
                     </StackPanel>
                 </Border>
                 <Border Style="{StaticResource Card}" Margin="6,0,6,6">
@@ -159,14 +159,14 @@
                         <Ellipse>
                             <Ellipse.Style>
                                 <Style TargetType="Ellipse">
-                                    <Setter Property="Fill" Value="{StaticResource IdleSoft}"/>
+                                    <Setter Property="Fill" Value="{DynamicResource IdleSoft}"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding RecordState}" Value="recording"><Setter Property="Fill" Value="{DynamicResource AccentSoft}"/></DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Ellipse.Style>
                         </Ellipse>
-                        <TextBlock FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}">
+                        <TextBlock FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock" BasedOn="{StaticResource Icon}">
                                     <Setter Property="Text" Value="&#xE714;"/>
@@ -193,7 +193,7 @@
                                 <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkRecord, Converter={StaticResource Vis}}">
                                     <TextBlock Text="{Binding HkRecord}" FontSize="9.5"/>
                                 </Border>
-                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{DynamicResource Warning}" Margin="6,1,0,0"
                                            VerticalAlignment="Center" ToolTip="{Binding RecordKey.TakenText}" AutomationProperties.Name="{Binding RecordKey.TakenText}"
                                            Visibility="{Binding RecordKey.Taken, Converter={StaticResource Vis}}"/>
                             </StackPanel>
@@ -206,7 +206,7 @@
                                 <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkRecord, Converter={StaticResource Vis}}">
                                     <TextBlock Text="{Binding HkRecord}" FontSize="9.5"/>
                                 </Border>
-                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{DynamicResource Warning}" Margin="6,1,0,0"
                                            VerticalAlignment="Center" ToolTip="{Binding RecordKey.TakenText}" AutomationProperties.Name="{Binding RecordKey.TakenText}"
                                            Visibility="{Binding RecordKey.Taken, Converter={StaticResource Vis}}"/>
                             </StackPanel>
@@ -219,7 +219,7 @@
                                 <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkRecord, Converter={StaticResource Vis}}">
                                     <TextBlock Text="{Binding HkRecord}" FontSize="9.5"/>
                                 </Border>
-                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{DynamicResource Warning}" Margin="6,1,0,0"
                                            VerticalAlignment="Center" ToolTip="{Binding RecordKey.TakenText}" AutomationProperties.Name="{Binding RecordKey.TakenText}"
                                            Visibility="{Binding RecordKey.Taken, Converter={StaticResource Vis}}"/>
                             </StackPanel>
@@ -256,8 +256,8 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <Grid Width="48" Height="48" VerticalAlignment="Center">
-                        <Ellipse Fill="{StaticResource IdleSoft}"/>
-                        <TextBlock Style="{StaticResource Icon}" Text="&#xE722;" FontSize="18" Foreground="{StaticResource TextSecondary}"
+                        <Ellipse Fill="{DynamicResource IdleSoft}"/>
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE722;" FontSize="18" Foreground="{DynamicResource TextSecondary}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
@@ -270,7 +270,7 @@
                             <Border Style="{StaticResource KeyChip}" Visibility="{Binding HkScreenshot, Converter={StaticResource Vis}}">
                                 <TextBlock Text="{Binding HkScreenshot}" FontSize="9.5"/>
                             </Border>
-                            <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{StaticResource Warning}" Margin="6,1,0,0"
+                            <TextBlock Style="{StaticResource Icon}" Text="&#xE7BA;" FontSize="12" Foreground="{DynamicResource Warning}" Margin="6,1,0,0"
                                        VerticalAlignment="Center" ToolTip="{Binding ScreenshotKey.TakenText}" AutomationProperties.Name="{Binding ScreenshotKey.TakenText}"
                                        Visibility="{Binding ScreenshotKey.Taken, Converter={StaticResource Vis}}"/>
                         </StackPanel>
@@ -310,9 +310,9 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Width="112" Height="63" CornerRadius="8" Background="#231D1C" ClipToBounds="True" VerticalAlignment="Top">
+                        <Border Width="112" Height="63" CornerRadius="8" Background="{DynamicResource FieldFill}" ClipToBounds="True" VerticalAlignment="Top">
                             <Grid>
-                                <TextBlock Style="{StaticResource Icon}" Text="&#xE714;" FontSize="18" Foreground="{StaticResource StrokeStrong}" HorizontalAlignment="Center"/>
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE714;" FontSize="18" Foreground="{DynamicResource StrokeStrong}" HorizontalAlignment="Center"/>
                                 <Image Source="{Binding LastClipThumbnail}" Stretch="UniformToFill" FlowDirection="LeftToRight"/>
                             </Grid>
                         </Border>
@@ -340,9 +340,9 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Width="112" Height="63" CornerRadius="8" Background="#231D1C" ClipToBounds="True" VerticalAlignment="Top">
+                        <Border Width="112" Height="63" CornerRadius="8" Background="{DynamicResource FieldFill}" ClipToBounds="True" VerticalAlignment="Top">
                             <Grid>
-                                <TextBlock Style="{StaticResource Icon}" Text="&#xE722;" FontSize="18" Foreground="{StaticResource StrokeStrong}" HorizontalAlignment="Center"/>
+                                <TextBlock Style="{StaticResource Icon}" Text="&#xE722;" FontSize="18" Foreground="{DynamicResource StrokeStrong}" HorizontalAlignment="Center"/>
                                 <Image Source="{Binding LastShotThumbnail}" Stretch="UniformToFill" FlowDirection="LeftToRight"/>
                             </Grid>
                         </Border>

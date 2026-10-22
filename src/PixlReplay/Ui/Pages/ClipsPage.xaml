@@ -83,7 +83,7 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Style="{StaticResource Title}" Text="{l:T clips.title}" Margin="0" VerticalAlignment="Center"
                            AutomationProperties.HelpText="{Binding CountText}"/>
-                <TextBlock Text="{Binding SelectedSizeText}" FontSize="16" FontWeight="Normal" Foreground="{StaticResource TextSecondary}"
+                <TextBlock Text="{Binding SelectedSizeText}" FontSize="16" FontWeight="Normal" Foreground="{DynamicResource TextSecondary}"
                            Margin="14,5,0,0" VerticalAlignment="Center"
                            Visibility="{Binding HasSelection, Converter={StaticResource Vis}}"/>
             </StackPanel>
@@ -107,8 +107,8 @@
 
         <Border Style="{StaticResource Card}" Padding="28" Visibility="{Binding IsEmpty, Converter={StaticResource Vis}}">
             <StackPanel HorizontalAlignment="Center">
-                <TextBlock Style="{StaticResource Icon}" Text="&#xE714;" FontSize="34" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center"/>
-                <TextBlock Text="{Binding EmptyText}" Foreground="{StaticResource TextSecondary}" Margin="0,12,0,0" TextAlignment="Center" TextWrapping="Wrap"/>
+                <TextBlock Style="{StaticResource Icon}" Text="&#xE714;" FontSize="34" Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Center"/>
+                <TextBlock Text="{Binding EmptyText}" Foreground="{DynamicResource TextSecondary}" Margin="0,12,0,0" TextAlignment="Center" TextWrapping="Wrap"/>
             </StackPanel>
         </Border>
 
@@ -140,11 +140,11 @@
             </ItemsControl.GroupStyle>
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type l:ClipItem}">
-                    <Border x:Name="Card" Width="250" Margin="6" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1.5" CornerRadius="12">
+                    <Border x:Name="Card" Width="250" Margin="6" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1.5" CornerRadius="12">
                         <StackPanel>
-                            <Border CornerRadius="11,11,0,0" Height="140" Background="#231D1C" ClipToBounds="True">
+                            <Border CornerRadius="11,11,0,0" Height="140" Background="{DynamicResource FieldFill}" ClipToBounds="True">
                                 <Grid>
-                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE714;" FontSize="28" Foreground="{StaticResource StrokeStrong}" HorizontalAlignment="Center"/>
+                                    <TextBlock Style="{StaticResource Icon}" Text="&#xE714;" FontSize="28" Foreground="{DynamicResource StrokeStrong}" HorizontalAlignment="Center"/>
                                     <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" FlowDirection="LeftToRight"/>
                                     <Button Style="{StaticResource OpenCard}" CommandParameter="{Binding}"
                                             Command="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>

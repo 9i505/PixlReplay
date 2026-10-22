@@ -4,11 +4,11 @@
              xmlns:l="clr-namespace:PixlReplay.Ui"
              xmlns:e="clr-namespace:PixlReplay.Ui.Edit"
              xmlns:ed="clr-namespace:PixlReplay.Engine.Edit"
-             Background="{StaticResource Bg}" Focusable="True">
+             Background="{DynamicResource Bg}" Focusable="True">
     <UserControl.Resources>
         <!-- A small choice tile (fonts, styles, speeds, places): the content is the sample -->
         <Style x:Key="Tile" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="0,0,5,0"/>
             <Setter Property="Height" Value="32"/>
@@ -17,18 +17,18 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="Bd" Background="{StaticResource Bg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1.5" CornerRadius="8">
+                        <Border x:Name="Bd" Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1.5" CornerRadius="8">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource StrokeStrong}"/>
-                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource StrokeStrong}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoft}"/>
-                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
@@ -49,7 +49,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Grid>
-                            <Border CornerRadius="7" Background="{StaticResource Surface}" ClipToBounds="True">
+                            <Border CornerRadius="7" Background="{DynamicResource Surface}" ClipToBounds="True">
                                 <Border.OpacityMask>
                                     <VisualBrush>
                                         <VisualBrush.Visual>
@@ -71,11 +71,11 @@
                                                VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis"/>
                                 </Grid>
                             </Border>
-                            <Border x:Name="Ring" CornerRadius="7" BorderBrush="{StaticResource Stroke}" BorderThickness="1.5"/>
+                            <Border x:Name="Ring" CornerRadius="7" BorderBrush="{DynamicResource Stroke}" BorderThickness="1.5"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Ring" Property="BorderBrush" Value="{StaticResource StrokeStrong}"/>
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource StrokeStrong}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Accent}"/>
@@ -98,14 +98,14 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
                         <Grid>
-                            <Border CornerRadius="6" Background="{StaticResource Bg}" ClipToBounds="True">
+                            <Border CornerRadius="6" Background="{DynamicResource Bg}" ClipToBounds="True">
                                 <Image Source="{Binding Thumb}" Stretch="UniformToFill" RenderOptions.BitmapScalingMode="HighQuality"/>
                             </Border>
-                            <Border x:Name="Ring" CornerRadius="6" BorderBrush="{StaticResource Stroke}" BorderThickness="1.5"/>
+                            <Border x:Name="Ring" CornerRadius="6" BorderBrush="{DynamicResource Stroke}" BorderThickness="1.5"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Ring" Property="BorderBrush" Value="{StaticResource StrokeStrong}"/>
+                                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource StrokeStrong}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Accent}"/>
@@ -118,8 +118,8 @@
         </Style>
         <!-- A key cap in the shortcuts sheet -->
         <Style x:Key="KeyCap" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource Bg}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource StrokeStrong}"/>
+            <Setter Property="Background" Value="{DynamicResource Bg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource StrokeStrong}"/>
             <Setter Property="BorderThickness" Value="1,1,1,2"/>
             <Setter Property="CornerRadius" Value="5"/>
             <Setter Property="Padding" Value="6,1"/>
@@ -155,7 +155,7 @@
             <Setter Property="Width" Value="28"/>
             <Setter Property="Height" Value="28"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
             <Setter Property="FocusVisualStyle" Value="{StaticResource KeyFocus}"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -163,14 +163,14 @@
                         <Border x:Name="Bd" Background="Transparent" CornerRadius="6">
                             <Grid>
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <Line x:Name="Slash" X1="7" Y1="21" X2="21" Y2="7" Stroke="{StaticResource TextSecondary}" StrokeThickness="1.6"
+                                <Line x:Name="Slash" X1="7" Y1="21" X2="21" Y2="7" Stroke="{DynamicResource TextSecondary}" StrokeThickness="1.6"
                                       Visibility="Collapsed" FlowDirection="LeftToRight"/>
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
-                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="False">
                                 <Setter TargetName="Slash" Property="Visibility" Value="Visible"/>
@@ -183,7 +183,7 @@
         </Style>
         <!-- The Add pill's buttons: icon and name (the name hides when the bar is narrow) -->
         <Style x:Key="AddButton" TargetType="ButtonBase">
-            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Height" Value="30"/>
             <Setter Property="Padding" Value="9,0"/>
@@ -200,13 +200,13 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
-                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                             </Trigger>
                             <Trigger Property="ToggleButton.IsChecked" Value="True">
                                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoft}"/>
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
@@ -339,13 +339,13 @@
                             Visibility="{Binding HasTimeline, Converter={StaticResource Vis}}">
                         <TextBlock x:Name="PlayIcon" Style="{StaticResource Icon}" Text="&#xF5B0;" FontSize="13"/>
                     </Button>
-                    <TextBlock x:Name="TimeText" FontFamily="Cascadia Mono, Consolas" FontSize="11.5" Foreground="{StaticResource TextSecondary}"
+                    <TextBlock x:Name="TimeText" FontFamily="Cascadia Mono, Consolas" FontSize="11.5" Foreground="{DynamicResource TextSecondary}"
                                Margin="10,0,8,0" VerticalAlignment="Center" FlowDirection="LeftToRight"
                                Visibility="{Binding HasTimeline, Converter={StaticResource Vis}}"/>
                 </StackPanel>
 
                 <StackPanel x:Name="MidGroup" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="8,0">
-                    <Border x:Name="AddPill" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="10"
+                    <Border x:Name="AddPill" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1" CornerRadius="10"
                             Padding="3" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal">
                             <Button Style="{StaticResource AddButton}" Tag="&#xE8D2;" Content="{l:T editor.add.text}" Command="{Binding AddTextCommand}"
@@ -365,7 +365,7 @@
                         </StackPanel>
                     </Border>
                     <!-- Auto captions at work: how far they are with a cancel mark, then for a moment how it went -->
-                    <Border x:Name="CaptionsBusyChip" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="10"
+                    <Border x:Name="CaptionsBusyChip" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1" CornerRadius="10"
                             Padding="10,0,4,0" Height="36" Margin="8,0,0,0" VerticalAlignment="Center" Visibility="{Binding CaptionsBusy, Converter={StaticResource Vis}}">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <StackPanel VerticalAlignment="Center" Width="116">
@@ -378,7 +378,7 @@
                             </Button>
                         </StackPanel>
                     </Border>
-                    <Border x:Name="CaptionsNote" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="10"
+                    <Border x:Name="CaptionsNote" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1" CornerRadius="10"
                             Padding="12,0" Height="36" Margin="8,0,0,0" VerticalAlignment="Center" Cursor="Hand"
                             Visibility="{Binding HasCaptionsNote, Converter={StaticResource Vis}}" MouseLeftButtonUp="OnCaptionsNote">
                         <TextBlock Text="{Binding CaptionsStatus}" FontSize="12" VerticalAlignment="Center" MaxWidth="180" TextTrimming="CharacterEllipsis"/>
@@ -395,7 +395,7 @@
                         <TextBlock Style="{StaticResource Icon}" Text="&#xE74D;" FontSize="14"/>
                     </Button>
                     <StackPanel x:Name="ZoomBox" Orientation="Horizontal" Margin="10,0,0,0">
-                        <TextBlock Style="{StaticResource Icon}" Text="&#xE71E;" FontSize="13" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE71E;" FontSize="13" Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                         <Slider Width="60" MinWidth="0" Minimum="1" Maximum="20" Value="{Binding TimelineZoom}" SmallChange="0.5" LargeChange="2" Margin="6,0,0,0"
                                 VerticalAlignment="Center" ToolTip="{l:T editor.zoom}" AutomationProperties.Name="{l:T editor.zoom}"/>
                     </StackPanel>
@@ -403,7 +403,7 @@
             </Grid>
 
             <!-- The inspector: only what is chosen (or the whole clip), never scrolling -->
-            <Border Grid.Column="1" Grid.RowSpan="2" Background="{StaticResource Surface}" BorderBrush="{StaticResource Stroke}" BorderThickness="1"
+            <Border Grid.Column="1" Grid.RowSpan="2" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1"
                     CornerRadius="12" Padding="16,12,16,12" Margin="0,0,0,8">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -518,7 +518,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Style="{StaticResource Icon}" Text="&#xE767;" FontSize="14" Width="28" TextAlignment="Center" VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextSecondary}"/>
+                                               Foreground="{DynamicResource TextSecondary}"/>
                                     <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="2" Value="{Binding AllLevel}" SmallChange="0.05"
                                             LargeChange="0.1" AutomationProperties.Name="{l:T editor.allSound}"/>
                                     <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding AllLabel}"/>
@@ -578,7 +578,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock x:Name="PartGameIcon" Style="{StaticResource Icon}" Text="&#xE7FC;" FontSize="14" Width="28" TextAlignment="Center"
-                                               VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}"/>
+                                               VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}"/>
                                     <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="2" Value="{Binding PartGame}" SmallChange="0.05"
                                             LargeChange="0.1" AutomationProperties.Name="{l:T editor.game}"/>
                                     <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding PartGameLabel}"/>
@@ -590,7 +590,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Style="{StaticResource Icon}" Text="&#xE720;" FontSize="14" Width="28" TextAlignment="Center" VerticalAlignment="Center"
-                                               Foreground="{StaticResource TextSecondary}"/>
+                                               Foreground="{DynamicResource TextSecondary}"/>
                                     <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="2" Value="{Binding PartMic}" SmallChange="0.05"
                                             LargeChange="0.1" AutomationProperties.Name="{l:T editor.mic}"/>
                                     <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding PartMicLabel}"/>
@@ -626,7 +626,7 @@
                                              IsChecked="{Binding TextEffect, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:TextEffect.Box}}">
                                     <StackPanel>
                                         <Grid Height="22">
-                                            <Border Background="#E0141010" CornerRadius="4" Padding="6,0" HorizontalAlignment="Center">
+                                            <Border Background="#E0111114" CornerRadius="4" Padding="6,0" HorizontalAlignment="Center">
                                                 <TextBlock Style="{StaticResource Sample}"/>
                                             </Border>
                                         </Grid>
@@ -689,7 +689,7 @@
                                              IsChecked="{Binding TextEffect, Converter={StaticResource Eq}, ConverterParameter={x:Static ed:TextEffect.Pill}}">
                                     <StackPanel>
                                         <Grid Height="22">
-                                            <Border Background="#E0141010" CornerRadius="10" Padding="8,0" HorizontalAlignment="Center">
+                                            <Border Background="#E0111114" CornerRadius="10" Padding="8,0" HorizontalAlignment="Center">
                                                 <TextBlock Style="{StaticResource Sample}"/>
                                             </Border>
                                         </Grid>
@@ -704,10 +704,10 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Text="A" FontSize="11" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <TextBlock Text="A" FontSize="11" Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                                 <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0.03" Maximum="0.15" Value="{Binding TextSize}" SmallChange="0.005"
                                         LargeChange="0.02" ToolTip="{l:T editor.size}" AutomationProperties.Name="{l:T editor.size}"/>
-                                <TextBlock Grid.Column="2" Text="A" FontSize="18" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="2" Text="A" FontSize="18" Foreground="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                             </Grid>
                             <TextBlock Style="{StaticResource Sec}" Text="{l:T editor.place}" e:FitPanel.Optional="True"/>
                             <UniformGrid Columns="3" Margin="0,4,-5,0">
@@ -733,10 +733,10 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Width="12" Height="1.5" Background="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <Border Width="12" Height="1.5" Background="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                                 <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0.003" Maximum="0.025" Value="{Binding PenThickness}" SmallChange="0.001"
                                         LargeChange="0.004" AutomationProperties.Name="{l:T editor.thickness}"/>
-                                <Border Grid.Column="2" Width="14" Height="6" CornerRadius="3" Background="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <Border Grid.Column="2" Width="14" Height="6" CornerRadius="3" Background="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                             </Grid>
                             <TextBlock Style="{StaticResource Hint}" Text="{Binding PageHint}" e:FitPanel.Optional="True"
                                        Visibility="{Binding PageHint, Converter={StaticResource Vis}}"/>
@@ -772,10 +772,10 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Border Width="12" Height="1.5" Background="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <Border Width="12" Height="1.5" Background="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                                 <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0.003" Maximum="0.025" Value="{Binding ShapeThickness}" SmallChange="0.001"
                                         LargeChange="0.004" AutomationProperties.Name="{l:T editor.thickness}"/>
-                                <Border Grid.Column="2" Width="14" Height="6" CornerRadius="3" Background="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                                <Border Grid.Column="2" Width="14" Height="6" CornerRadius="3" Background="{DynamicResource TextSecondary}" VerticalAlignment="Center"/>
                             </Grid>
                         </e:FitPanel>
 
@@ -810,13 +810,13 @@
         </Grid>
 
         <!-- Clips only: the timeline, full width -->
-        <Border Grid.Row="2" Margin="16,0,16,14" Background="{StaticResource NavBg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="12"
+        <Border Grid.Row="2" Margin="16,0,16,14" Background="{DynamicResource NavBg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1" CornerRadius="12"
                 Padding="0,2,0,2" Visibility="{Binding HasTimeline, Converter={StaticResource Vis}}">
             <ContentControl x:Name="TimelineHost" Focusable="False"/>
         </Border>
 
         <!-- Back with changes: asked before they are thrown away (keeping on is the default) -->
-        <Grid Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding AskingDiscard, Converter={StaticResource Vis}}">
+        <Grid Grid.RowSpan="3" Background="#B0161619" Visibility="{Binding AskingDiscard, Converter={StaticResource Vis}}">
             <Border Style="{StaticResource Card}" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22,20" Margin="0">
                 <StackPanel>
                     <TextBlock Style="{StaticResource Section}" Text="{l:T editor.discard.title}" Margin="0,0,0,8"/>
@@ -830,7 +830,7 @@
         </Grid>
 
         <!-- Reset: asked first (keeping the edits is the default); Ctrl+Z brings them back after -->
-        <Grid Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding AskingReset, Converter={StaticResource Vis}}">
+        <Grid Grid.RowSpan="3" Background="#B0161619" Visibility="{Binding AskingReset, Converter={StaticResource Vis}}">
             <Border Style="{StaticResource Card}" Width="400" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22,20" Margin="0">
                 <StackPanel>
                     <TextBlock Style="{StaticResource Section}" Text="{l:T editor.reset.title}" Margin="0,0,0,8"/>
@@ -844,7 +844,7 @@
         </Grid>
 
         <!-- Captions again: asked first, so a press by mistake never throws edited captions away -->
-        <Grid Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding AskingRecaption, Converter={StaticResource Vis}}">
+        <Grid Grid.RowSpan="3" Background="#B0161619" Visibility="{Binding AskingRecaption, Converter={StaticResource Vis}}">
             <Border Style="{StaticResource Card}" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22,20" Margin="0">
                 <StackPanel>
                     <TextBlock Style="{StaticResource Section}" Text="{l:T editor.recaption.title}" Margin="0,0,0,8"/>
@@ -859,7 +859,7 @@
         </Grid>
 
         <!-- Auto captions, every press: what it does in two lines (and the one-time download, only once the user agrees) -->
-        <Grid Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding ShowingIntro, Converter={StaticResource Vis}}">
+        <Grid Grid.RowSpan="3" Background="#B0161619" Visibility="{Binding ShowingIntro, Converter={StaticResource Vis}}">
             <Border Style="{StaticResource Card}" Width="470" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="24,22" Margin="0">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
@@ -868,7 +868,7 @@
                     </StackPanel>
                     <TextBlock Text="{l:T editor.intro.what}" TextWrapping="Wrap" FontSize="13.5" Margin="0,0,0,6"/>
                     <TextBlock Text="{l:T editor.intro.where}" TextWrapping="Wrap" FontSize="13.5"/>
-                    <Border Background="{StaticResource Bg}" BorderBrush="{StaticResource Stroke}" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,16,0,18"
+                    <Border Background="{DynamicResource Bg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,16,0,18"
                             Visibility="{Binding NeedsDownload, Converter={StaticResource Vis}}">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal">
@@ -887,7 +887,7 @@
         </Grid>
 
         <!-- Every shortcut on one sheet (the keyboard button, or ?) -->
-        <Grid x:Name="ShortcutsSheet" Grid.RowSpan="3" Background="#B01A1514" Visibility="{Binding ShowingShortcuts, Converter={StaticResource Vis}}"
+        <Grid x:Name="ShortcutsSheet" Grid.RowSpan="3" Background="#B0161619" Visibility="{Binding ShowingShortcuts, Converter={StaticResource Vis}}"
               MouseLeftButtonDown="OnShortcutsBackdrop">
             <Border Style="{StaticResource Card}" Width="760" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="26,20" Margin="0"
                     MouseLeftButtonDown="OnShortcutsCard">
@@ -912,16 +912,16 @@
         </Grid>
 
         <!-- Saving: the editor stays until the edit is written (a ring fills to 100%, a check, then it goes by itself) -->
-        <Grid Grid.RowSpan="3" Background="#C01A1514" Visibility="{Binding IsSaving, Converter={StaticResource Vis}}">
+        <Grid Grid.RowSpan="3" Background="#C0161619" Visibility="{Binding IsSaving, Converter={StaticResource Vis}}">
             <Border Style="{StaticResource Card}" Width="320" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="28,26,28,22" Margin="0">
                 <StackPanel>
                     <Grid Width="124" Height="124" HorizontalAlignment="Center">
-                        <l:ProgressRing Value="{Binding SaveProgress}" Thickness="9" Fill="{DynamicResource Accent}" Track="{StaticResource Stroke}"/>
+                        <l:ProgressRing Value="{Binding SaveProgress}" Thickness="9" Fill="{DynamicResource Accent}" Track="{DynamicResource Stroke}"/>
                         <TextBlock Text="{Binding SavePercent}" FontSize="28" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
                                    FlowDirection="LeftToRight" Visibility="{Binding SaveWorking, Converter={StaticResource Vis}}"/>
                         <TextBlock Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="40" Foreground="{DynamicResource Accent}" HorizontalAlignment="Center"
                                    VerticalAlignment="Center" Visibility="{Binding SaveDone, Converter={StaticResource Vis}}"/>
-                        <TextBlock Style="{StaticResource Icon}" Text="&#xE783;" FontSize="36" Foreground="{StaticResource TextSecondary}" HorizontalAlignment="Center"
+                        <TextBlock Style="{StaticResource Icon}" Text="&#xE783;" FontSize="36" Foreground="{DynamicResource TextSecondary}" HorizontalAlignment="Center"
                                    VerticalAlignment="Center" Visibility="{Binding HasSaveError, Converter={StaticResource Vis}}"/>
                     </Grid>
                     <TextBlock Text="{Binding SaveTitle}" FontSize="17" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,18,0,4"/>
@@ -940,7 +940,7 @@
         </Grid>
 
         <!-- Save: a new copy, or in place of the original (asked every time) -->
-        <Grid x:Name="SaveChoice" Grid.RowSpan="3" Background="#B01A1514" Visibility="Collapsed" MouseLeftButtonDown="OnSaveChoiceBackdrop">
+        <Grid x:Name="SaveChoice" Grid.RowSpan="3" Background="#B0161619" Visibility="Collapsed" MouseLeftButtonDown="OnSaveChoiceBackdrop">
             <Border Style="{StaticResource Card}" Width="420" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="22,20" Margin="0"
                     MouseLeftButtonDown="OnSaveChoiceCard">
                 <StackPanel>

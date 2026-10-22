@@ -15,7 +15,7 @@ namespace PixlReplay.Ui;
 /// Settings being edited plus live engine status. Edits refresh every binding; option lists are cached so
 /// dropdowns are not rebuilt, and the 1 s status poll only refreshes the status properties.
 /// </summary>
-public sealed class SettingsViewModel : INotifyPropertyChanged
+public sealed partial class SettingsViewModel : INotifyPropertyChanged
 {
     static readonly int[] SecondsSteps = [15, 30, 60, 90, 120, 180, 240, 300, 420, 600, 900, 1200];
     static readonly string[] StatusProperties =
@@ -90,6 +90,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     {
         if (VoiceView is "enrolling" or "testing")
             PipeClient.Send("voice-cancel", 800);
+        FlushLook();
         _poll.Stop();
         _watcher?.Dispose();
     }
@@ -225,12 +226,14 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
 
     public void Load()
     {
+        FlushLook();
         _s = SettingsStore.Load(SettingsStore.DefaultPath);
         _savedJson = SettingsStore.Serialize(_s);
         IsDirty = false;
         BuildTextOptions();
         RebuildOptions();
         ApplyAccent();
+        RefreshLookChoices();
         RaiseAll();
     }
 
@@ -786,11 +789,11 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         RaiseAll();
     }
 
-    /// <summary>Takes effect in this window at once (a preview until Apply); Revert puts the saved color back.</summary>
+    /// <summary>The Look page's choices, shown in this window at once.</summary>
     void ApplyAccent()
     {
         if (System.Windows.Application.Current is { } app)
-            ThemeAccent.Apply(app.Resources);
+            ThemeAccent.Apply(app.Resources, _s.Look);
     }
 
     public string EffectiveFolder => _status?.Engine?.ClipsFolder is { Length: > 0 } f ? f : _s.Output.Folder;

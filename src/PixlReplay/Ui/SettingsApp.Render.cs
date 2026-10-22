@@ -259,7 +259,7 @@ public static partial class SettingsApp
             };
         }
         vm.Seed(status, caps);
-        ThemeAccent.Apply(app.Resources);
+        ThemeAccent.Apply(app.Resources, vm.Look);
 
         // share[-x|-tiktok|-instagram|-copy|-all|-picture|-working|-done|-failed|-posting|-posted|-all-posting|-all-done]: the share
         // panel over the Clips page.

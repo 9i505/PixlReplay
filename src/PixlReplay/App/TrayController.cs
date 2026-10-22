@@ -89,10 +89,21 @@ public sealed class TrayController : IDisposable
     public static uint ColorFor(string kind) => kind switch
     {
         "active" or "recording" => Settings.ThemeColors.Accent,
-        "saved" => 0x2ED47A,
-        "error" => 0xFFB020,
-        _ => 0xA3928F,
+        "saved" => Settings.ThemeColors.Success,
+        "error" => Settings.ThemeColors.Warning,
+        _ => Settings.ThemeColors.Idle,
     };
+
+    /// <summary>Draws the icons again in the Look page's colors (they changed, or were just read at start).</summary>
+    public void Redraw()
+    {
+        var old = _icons.Values.ToList();
+        DrawIcons();
+        ApplyIcon();
+        _menuKey = null; // the menu's colors too, at its next update
+        foreach (var icon in old)
+            icon.Dispose();
+    }
 
     /// <summary>Briefly shows the green "saved" icon.</summary>
     public void FlashSaved()
@@ -120,7 +131,10 @@ public sealed class TrayController : IDisposable
         return icon;
     }
 
-    /// <summary>The 32 px tray picture for <paramref name="kind"/>: the app's mark in the state's color.</summary>
+    /// <summary>
+    /// The 32 px tray picture for <paramref name="kind"/>: the app's P in the state's color (a play mark would be too small
+    /// to see at tray size), with a dot while recording and two bars while paused.
+    /// </summary>
     public static Bitmap DrawBitmap(string kind)
     {
         const int size = 32;
@@ -128,27 +142,29 @@ public sealed class TrayController : IDisposable
         using (var g = Graphics.FromImage(bmp))
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
             g.Clear(Color.Transparent);
-            using (var bg = new SolidBrush(Color.FromArgb(255, 46, 39, 38)))
+            var plateColor = Color.FromArgb(unchecked((int)(0xFF000000 | Settings.ThemeColors.Background)));
+            using (var bg = new SolidBrush(plateColor))
             using (var path = GdiShapes.Rounded(new RectangleF(1, 1, size - 2, size - 2), 8))
                 g.FillPath(bg, path);
 
-            Color accent = Color.FromArgb(unchecked((int)(0xFF000000 | ColorFor(kind))));
-            using var pen = new Pen(accent, 3f);
-            AppIconArt.DrawRing(g, pen, new RectangleF(6, 6, 20, 20));
-            using var brush = new SolidBrush(accent);
-            switch (kind)
+            Color color = Color.FromArgb(unchecked((int)(0xFF000000 | ColorFor(kind))));
+            using var brush = new SolidBrush(color);
+            using (var letter = AppIconArt.Letter(new RectangleF(5, 4, 22, 24)))
+                g.FillPath(brush, letter);
+            if (kind is "recording" or "paused")
             {
-                case "paused":
-                    g.FillRectangle(brush, 12, 11, 3, 10);
-                    g.FillRectangle(brush, 17, 11, 3, 10);
-                    break;
-                case "recording":
-                    g.FillEllipse(brush, 10, 10, 12, 12);
-                    break;
-                default:
-                    g.FillEllipse(brush, 12, 12, 8, 8);
-                    break;
+                // A badge at the foot of the bowl, ringed in the plate's color so it stands off the letter.
+                using var ring = new SolidBrush(plateColor);
+                g.FillEllipse(ring, 17, 17, 14, 14);
+                if (kind == "recording")
+                    g.FillEllipse(brush, 19.5f, 19.5f, 9, 9);
+                else
+                {
+                    g.FillRectangle(brush, 20.5f, 20, 2.6f, 8);
+                    g.FillRectangle(brush, 25, 20, 2.6f, 8);
+                }
             }
         }
         return bmp;

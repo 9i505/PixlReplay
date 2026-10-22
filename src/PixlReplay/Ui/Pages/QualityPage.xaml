@@ -4,15 +4,15 @@
              xmlns:l="clr-namespace:PixlReplay.Ui">
     <UserControl.Resources>
         <DataTemplate x:Key="Badge">
-            <Border Background="{StaticResource SuccessSoft}" CornerRadius="5" Padding="7,2" Margin="0,2" VerticalAlignment="Center">
-                <TextBlock Text="{l:T quality.recommended}" FontSize="11" Foreground="{StaticResource Success}"/>
+            <Border Background="{DynamicResource SuccessSoft}" CornerRadius="5" Padding="7,2" Margin="0,2" VerticalAlignment="Center">
+                <TextBlock Text="{l:T quality.recommended}" FontSize="11" Foreground="{DynamicResource Success}"/>
             </Border>
         </DataTemplate>
     </UserControl.Resources>
     <StackPanel>
         <TextBlock Style="{StaticResource Title}" Text="{l:T nav.quality}"/>
 
-        <Border Style="{StaticResource Card}" Background="{StaticResource WarningSoft}" BorderBrush="{StaticResource Warning}"
+        <Border Style="{StaticResource Card}" Background="{DynamicResource WarningSoft}" BorderBrush="{DynamicResource Warning}"
                 Visibility="{Binding CpuOnly, Converter={StaticResource Vis}}">
             <TextBlock Text="{l:T quality.cpuOnly}" TextWrapping="Wrap"/>
         </Border>

@@ -20,7 +20,7 @@ public static class UpdateBarTests
         const string notes = "https://github.com/9i55/PixlReplay/releases/tag/v1.0.1";
         var vm = With(new UpdateStatus("1.0.1", UpdateState.Available, 0, notes));
         Assert.True(vm.UpdateBarVisible, "shown");
-        Assert.Equal("PixlReplay 1.0.1 is available", vm.UpdateText, "available");
+        Assert.Equal("Pixl Replay 1.0.1 is available", vm.UpdateText, "available");
         Assert.Equal("Update", vm.UpdateActionText, "its button");
         Assert.True(vm.UpdateActionVisible, "with a button");
 

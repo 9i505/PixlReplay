@@ -7,16 +7,16 @@ using PixlReplay.Settings;
 namespace PixlReplay.App;
 
 /// <summary>
-/// The tray's right-click menu in the app's own look: the window's warm brown, light text, a rose-tinted highlight and
-/// rounded corners (Windows 11), instead of Windows' white menu.
+/// The tray's right-click menu in the app's own look (the Look page's colors): the window's background, its text, an
+/// accent-tinted highlight and rounded corners (Windows 11), instead of Windows' white menu.
 /// </summary>
 public static class TrayMenu
 {
-    static readonly Color Back = Rgb(ThemeColors.Background);
-    static readonly Color Line = Rgb(0x4E4241); // Theme.xaml's Stroke
-    static readonly Color Ink = Rgb(0xF5ECEA); // TextPrimary
-    static readonly Color Muted = Rgb(0xBBAAA7); // TextSecondary
-    static readonly Color Highlight = Rgb(ThemeColors.Soft);
+    static Color Back => Rgb(ThemeColors.Background);
+    static Color Line => Rgb(ThemeColors.Stroke);
+    static Color Ink => Rgb(ThemeColors.Text);
+    static Color Muted => Rgb(ThemeColors.TextSecondary);
+    static Color Highlight => Rgb(ThemeColors.Soft);
     static readonly Font MenuFont = new("Segoe UI", 9.75f);
 
     public static ContextMenuStrip Create(bool rightToLeft)

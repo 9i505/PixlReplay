@@ -4,7 +4,7 @@
              xmlns:l="clr-namespace:PixlReplay.Ui"
              Focusable="False">
     <!-- A clip in PixlReplay's own player over the window: play, seek, sound, edit, share, show, delete. Esc or a click outside closes. -->
-    <Grid x:Name="Scrim" Background="#E01A1514" MouseLeftButtonDown="OnScrimClick">
+    <Grid x:Name="Scrim" Background="#E0161619" MouseLeftButtonDown="OnScrimClick">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -19,7 +19,7 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel VerticalAlignment="Center">
-                <TextBlock x:Name="Heading" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}" TextTrimming="CharacterEllipsis"/>
+                <TextBlock x:Name="Heading" FontSize="17" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" TextTrimming="CharacterEllipsis"/>
                 <TextBlock x:Name="Meta" Style="{StaticResource Caption}" FlowDirection="LeftToRight" HorizontalAlignment="Left"/>
             </StackPanel>
             <Button x:Name="EditButton" Grid.Column="1" Style="{StaticResource Ghost}" Click="OnEdit" Padding="14,9" Margin="0,0,8,0"
@@ -37,7 +37,7 @@
 
         <!-- Never mirrored: a clip plays the same in Arabic -->
         <Border Grid.Row="1" Margin="28,0" CornerRadius="10" ClipToBounds="True" HorizontalAlignment="Center" VerticalAlignment="Center"
-                BorderBrush="{StaticResource Stroke}" BorderThickness="1" Background="Black" MouseLeftButtonDown="OnVideoClick" Cursor="Hand">
+                BorderBrush="{DynamicResource Stroke}" BorderThickness="1" Background="Black" MouseLeftButtonDown="OnVideoClick" Cursor="Hand">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="40" ShadowDepth="0" Opacity="0.5" Color="Black"/>
             </Border.Effect>

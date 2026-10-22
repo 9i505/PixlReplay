@@ -13,7 +13,7 @@ namespace PixlReplay.Ui.Edit;
 /// </summary>
 public static class ItemRenderer
 {
-    static readonly Brush Backing = Freeze(new SolidColorBrush(Color.FromArgb(0xB8, 0x14, 0x10, 0x10)));
+    static readonly Brush Backing = Freeze(new SolidColorBrush(Color.FromArgb(0xB8, 0x12, 0x12, 0x15)));
 
     public static void Draw(DrawingContext dc, EditItem item, Size frame)
     {

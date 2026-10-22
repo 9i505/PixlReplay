@@ -457,7 +457,7 @@ public sealed class EditCanvas : Canvas
             FontFamily = font.Family,
             FontWeight = font.Weight,
             Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(text.ColorHex)),
-            Background = text.Effect is TextEffect.Box or TextEffect.Pill ? new SolidColorBrush(Color.FromArgb(0xB8, 0x14, 0x10, 0x10)) : Brushes.Transparent,
+            Background = text.Effect is TextEffect.Box or TextEffect.Pill ? new SolidColorBrush(Color.FromArgb(0xB8, 0x12, 0x12, 0x15)) : Brushes.Transparent,
             BorderThickness = new Thickness(0),
             Padding = new Thickness(fontPx * 0.25, 0, fontPx * 0.25, 0),
             TextAlignment = TextAlignment.Center,
