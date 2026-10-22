@@ -41,7 +41,7 @@ public sealed class EngineApp : ApplicationContext
     bool _pausedByUser;
     readonly SaveWatch _saveWatch = new();
     bool _retried;
-    bool _stopped;
+    volatile bool _stopped;
     bool _starting = true;
     /// <summary>Keys taken this time settings were applied (two actions on the same keys: the second is not another app's fault).</summary>
     readonly HashSet<Hotkey> _keysInUse = [];
@@ -112,6 +112,8 @@ public sealed class EngineApp : ApplicationContext
             // A settings window that closed while a hotkey box had focus never said typing ended.
             if (_hotkeys.Suspended && !ForegroundApp.IsPixlReplay())
                 _hotkeys.Resume();
+            // Nor one left with a hotkey box focused, or a "typed" message lost on the way.
+            _hotkeys.ResumeIfForgotten();
             if (_saveWatch.Tick(DateTime.UtcNow) is { } never)
                 NotSaved(never);
             if (UpdateRules.ShouldCheck(_settings.General.CheckUpdates && _updates.Available, _bufferActiveSince, _updates.LastCheck, DateTime.UtcNow))
@@ -124,6 +126,7 @@ public sealed class EngineApp : ApplicationContext
         _updates.NewVersion += version => _ui.BeginInvoke(() =>
             _toast.Show(Text.Format("toast.update", AppInfo.Display(version)), Text.Get("toast.updateDetail"), Text.IsRightToLeft));
         _trayTimer.Start();
+        WatchWindowThread();
 
         ObsLog.Open(Path.Combine(SettingsStore.AppDataDir, "logs"));
         Resilience.RegisterRestart("--background");
@@ -309,8 +312,42 @@ public sealed class EngineApp : ApplicationContext
 
     // ---------------------------------------------------------------- actions
 
+    long _windowThreadSeen = Environment.TickCount64;
+
+    /// <summary>
+    /// Keys, the tray and saving all run on this window's thread: a background thread checks every few seconds that it
+    /// still answers, and writes down any time it did not (how long), so a stall is found instead of only felt.
+    /// </summary>
+    void WatchWindowThread()
+    {
+        new Thread(() =>
+        {
+            long stalledSince = 0;
+            while (!_stopped)
+            {
+                Thread.Sleep(2000);
+                if (!_ui.IsHandleCreated)
+                    continue;
+                _ui.BeginInvoke(() => Interlocked.Exchange(ref _windowThreadSeen, Environment.TickCount64));
+                long silent = Environment.TickCount64 - Interlocked.Read(ref _windowThreadSeen);
+                if (silent > 8000 && stalledSince == 0)
+                {
+                    stalledSince = Environment.TickCount64 - silent;
+                    ObsLog.Warn($"window thread not answering for {silent / 1000} s (keys and the tray wait for it)");
+                }
+                else if (silent <= 8000 && stalledSince != 0)
+                {
+                    ObsLog.Warn($"window thread answering again after {(Environment.TickCount64 - stalledSince) / 1000} s");
+                    stalledSince = 0;
+                }
+            }
+        }) { IsBackground = true, Name = "PixlReplay window watch", Priority = ThreadPriority.BelowNormal }.Start();
+    }
+
     void OnHotkey(string id)
     {
+        if (_hotkeys.LastWatchedPress is { } seen && seen.Id == id && (DateTime.Now - seen.At).TotalSeconds < 1)
+            ObsLog.Info($"key '{id}' seen by the key watcher (Windows sent no hotkey message: the app in front blocks them)");
         switch (id)
         {
             case "save": SaveClip(quick: false); break;
