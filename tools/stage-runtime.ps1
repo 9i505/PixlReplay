@@ -4,10 +4,22 @@
 #>
 param(
     [string]$Dest = 'D:\PixlReplay',
-    [string]$Obs = 'C:\Program Files\obs-studio'
+    [string]$Obs = 'C:\Program Files\obs-studio',
+    # Without OBS on this PC: an installed Pixl Replay's program folder (...\current), which holds the same libobs files
+    # (and its libobs-version.txt). Its own app files are left out; dotnet publish puts the new ones in.
+    [string]$FromInstall
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ($FromInstall) {
+    if (-not (Test-Path (Join-Path $FromInstall 'obs.dll'))) { throw "No libobs in $FromInstall" }
+    New-Item -ItemType Directory -Force $Dest | Out-Null
+    robocopy $FromInstall $Dest /E /XF 'PixlReplay.*' sq.version LICENSE THIRD-PARTY-NOTICES.md /XD licenses fonts models runtimes /NFL /NDL /NJH /NJS /NP | Out-Null
+    if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE): $FromInstall" }
+    Write-Output "Staged libobs $((Get-Content (Join-Path $Dest 'libobs-version.txt')).Trim()) from $FromInstall into $Dest"
+    exit 0
+}
 
 $plugins = 'win-capture', 'win-wasapi', 'obs-nvenc', 'obs-ffmpeg', 'obs-qsv11', 'obs-x264'
 # Not loaded by anything PixlReplay ships: the OBS window (Qt), scripting, OpenGL, and WebRTC (datachannel, obs-webrtc's only).

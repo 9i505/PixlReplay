@@ -13,7 +13,9 @@ param(
     [string]$PackId = 'PixlReplay',
     [string]$Version,
     [string]$Out = 'releases',
-    [string]$ExpectedObs = '32.2.2'
+    [string]$ExpectedObs = '32.2.2',
+    # Without OBS installed: take libobs from an installed Pixl Replay's ...\current folder (see stage-runtime.ps1).
+    [string]$ObsFromInstall
 )
 
 $ErrorActionPreference = 'Stop'
@@ -34,7 +36,8 @@ if (-not (Test-Path $vpk)) { throw 'vpk not found: dotnet tool install -g vpk --
 # The program, in one folder: libobs from the installed OBS (read only), then PixlReplay with .NET inside.
 $stage = Join-Path $repo "dist\stage-$PackId-$Version"
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
-& (Join-Path $PSScriptRoot 'stage-runtime.ps1') -Dest $stage | Write-Output
+if ($ObsFromInstall) { & (Join-Path $PSScriptRoot 'stage-runtime.ps1') -Dest $stage -FromInstall $ObsFromInstall | Write-Output }
+else { & (Join-Path $PSScriptRoot 'stage-runtime.ps1') -Dest $stage | Write-Output }
 $obsVersion = (Get-Content (Join-Path $stage 'libobs-version.txt')).Trim()
 if ($obsVersion -ne $ExpectedObs) { throw "Installed OBS is $obsVersion, expected $ExpectedObs (pass -ExpectedObs after re-testing)" }
 dotnet publish (Join-Path $repo 'src\PixlReplay') -c Release -o $stage --self-contained true "-p:Version=$Version" --nologo -v quiet
