@@ -34,6 +34,60 @@ public static class HotkeyDefaults
     }
 
     /// <summary>
+    /// A key PixlReplay can count on: no app holds it now, and it is none of NVIDIA's shortcuts (<paramref name="nvidia"/>).
+    /// NVIDIA's overlay starts with a game and takes its keys then (Alt+F10 save, Alt+F9 record): a key that is free on the
+    /// desktop would stop working in the game.
+    /// </summary>
+    public static bool Usable(Hotkey hotkey, IReadOnlyCollection<Hotkey> nvidia, Func<Hotkey, bool> isFree) =>
+        !nvidia.Contains(hotkey) && isFree(hotkey);
+
+    /// <summary>
+    /// Moves each key that is one of NVIDIA's shortcuts to the action's first usable choice (once, for keys set before
+    /// PixlReplay knew). Returns whether any key moved.
+    /// </summary>
+    public static bool AvoidNvidia(HotkeySettings keys, IReadOnlyCollection<Hotkey> nvidia, Func<Hotkey, bool> isFree)
+    {
+        if (nvidia.Count == 0)
+            return false;
+        bool moved = false;
+        foreach (string action in Choices.Keys)
+        {
+            string current = Get(keys, action);
+            if (!HotkeyParser.TryParse(current, out var h) || !nvidia.Contains(h))
+                continue;
+            var inUse = Choices.Keys.Where(a => a != action).Select(a => Get(keys, a));
+            if (FreeChoice(action, inUse, k => Usable(k, nvidia, isFree)) is { } free)
+            {
+                Set(keys, action, free);
+                moved = true;
+            }
+        }
+        return moved;
+    }
+
+    static string Get(HotkeySettings keys, string action) => action switch
+    {
+        "save" => keys.Save,
+        "toggle" => keys.ToggleBuffer,
+        "record" => keys.Record,
+        "pauseRecord" => keys.PauseRecord ?? "",
+        "screenshot" => keys.Screenshot,
+        _ => "",
+    };
+
+    static void Set(HotkeySettings keys, string action, string key)
+    {
+        switch (action)
+        {
+            case "save": keys.Save = key; break;
+            case "toggle": keys.ToggleBuffer = key; break;
+            case "record": keys.Record = key; break;
+            case "pauseRecord": keys.PauseRecord = key; break;
+            case "screenshot": keys.Screenshot = key; break;
+        }
+    }
+
+    /// <summary>
     /// Sets each action to its first free choice (the default when all are taken). True when any key is not the
     /// default, so the user is told once.
     /// </summary>

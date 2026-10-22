@@ -87,6 +87,7 @@ public sealed class AppSettings
 
         if (!App.Text.IsSupported(General.Language)) General.Language = App.Text.Fallback;
         if (!Enum.IsDefined(Voice.Sensitivity)) Voice.Sensitivity = VoiceSensitivity.Normal;
+        Voice.MicDevice ??= "";
 
         Share.CropPosition = double.IsFinite(Share.CropPosition) ? Math.Clamp(Share.CropPosition, 0, 1) : 0.5;
         Share.Tags ??= "";
@@ -159,6 +160,8 @@ public sealed class HotkeySettings
     public string Record { get; set; } = "Alt+F9";
     /// <summary>Pauses and resumes a full recording. Missing (settings from before it existed): the recording keys plus Shift.</summary>
     public string? PauseRecord { get; set; }
+    /// <summary>The keys were moved off NVIDIA's shortcuts (once: a key the user sets later is theirs).</summary>
+    public bool NvidiaChecked { get; set; }
     /// <summary>Takes a screenshot. Alt+F12: free of OBS's F9–F11 and RTSS's Ctrl+F12.</summary>
     public string Screenshot { get; set; } = "Alt+F12";
 }
@@ -192,6 +195,8 @@ public sealed class VoiceSettings
     public VoiceSensitivity Sensitivity { get; set; } = VoiceSensitivity.Normal;
     /// <summary>The status-page card that introduces Smart Save was closed.</summary>
     public bool HintDismissed { get; set; }
+    /// <summary>The microphone Smart Save hears (a device id); empty: chosen by itself (<see cref="Engine.VoiceMic.Pick"/>).</summary>
+    public string MicDevice { get; set; } = "";
 
     /// <summary>
     /// Normal talk scored 0.114 and up against a real user's phrase while their attempts scored 0.05-0.08,

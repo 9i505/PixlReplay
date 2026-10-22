@@ -14,7 +14,8 @@ public static class SettingsDiff
         var copy = SettingsStore.Deserialize(SettingsStore.Serialize(s));
         copy.Hotkeys = new HotkeySettings();
         copy.General = new GeneralSettings { OnlyWhenGaming = s.General.OnlyWhenGaming };
-        copy.Voice = new VoiceSettings { Enabled = s.Voice.Enabled };
+        // Its microphone too: Smart Save may hear one of its own.
+        copy.Voice = new VoiceSettings { Enabled = s.Voice.Enabled, MicDevice = s.Voice.MicDevice };
         copy.Share = new ShareSettings();
         copy.Look = new LookSettings();
         // Instant replay on/off only starts or stops the buffer; a rebuild would also end a full recording.

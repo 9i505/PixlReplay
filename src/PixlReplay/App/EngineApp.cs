@@ -64,9 +64,23 @@ public sealed class EngineApp : ApplicationContext
         _settings = SettingsStore.Load(SettingsStore.DefaultPath);
         // The install wizard's language and start-with-Windows choice, once after it ran.
         bool chosen = InstallChoices.ConsumeInto(_settings, SettingsStore.AppDataDir);
-        // A first install takes the usual keys, or for each one another app holds (NVIDIA's are the same), a free one.
-        bool pickedKeys = firstRun && HotkeyDefaults.PickFree(_settings.Hotkeys, HotkeyManager.IsFree);
-        if (firstRun || chosen)
+        // A first install takes the usual keys, or for each one another app holds, a free one; never NVIDIA's shortcuts,
+        // which its overlay takes once a game starts (a key free on the desktop would then do nothing in the game).
+        var nvidia = NvidiaHotkeys.Read().ToHashSet();
+        bool pickedKeys = firstRun && HotkeyDefaults.PickFree(_settings.Hotkeys, h => HotkeyDefaults.Usable(h, nvidia, HotkeyManager.IsFree));
+        // Keys set before PixlReplay knew (Alt+F10 and Alt+F9 were NVIDIA's too) move off NVIDIA's, once.
+        bool nvidiaChecked = _settings.Hotkeys.NvidiaChecked;
+        if (!nvidiaChecked)
+        {
+            if (!firstRun && HotkeyDefaults.AvoidNvidia(_settings.Hotkeys, nvidia, HotkeyManager.IsFree))
+            {
+                pickedKeys = true;
+                ObsLog.Info($"keys moved off NVIDIA's: save {_settings.Hotkeys.Save}, record {_settings.Hotkeys.Record}, " +
+                            $"toggle {_settings.Hotkeys.ToggleBuffer}, screenshot {_settings.Hotkeys.Screenshot}");
+            }
+            _settings.Hotkeys.NvidiaChecked = true;
+        }
+        if (firstRun || chosen || !nvidiaChecked)
             SettingsStore.Save(SettingsStore.DefaultPath, _settings);
         Text.Language = _settings.General.Language;
         ThemeColors.Use(_settings.Look);

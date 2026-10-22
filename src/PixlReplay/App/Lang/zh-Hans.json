@@ -568,5 +568,8 @@
   "capture.cardExtra": "更多屏幕",
   "capture.extraTip": "每次保存时，这里打开的每个屏幕也各存一段",
   "capture.extraNone": "只连接了一个屏幕",
-  "quality.fpsScreen": "{0} fps • 屏幕上限"
+  "quality.fpsScreen": "{0} fps • 屏幕上限",
+  "voice.mic": "麦克风",
+  "voice.micAuto": "自动 • {0}",
+  "voice.micTip": "你的真实麦克风，而不是 VB-Cable 这类虚拟设备"
 }

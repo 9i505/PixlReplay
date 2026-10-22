@@ -756,6 +756,27 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
 
     public bool VoiceEnabled { get => _s.Voice.Enabled; set => Set(() => _s.Voice.Enabled = value); }
     public VoiceSensitivity VoiceSensitivity { get => _s.Voice.Sensitivity; set => Set(() => _s.Voice.Sensitivity = value); }
+
+    /// <summary>
+    /// The microphones Smart Save can hear: first "Automatic" with the one it picks (a real microphone when the recording
+    /// takes a virtual one), then every microphone.
+    /// </summary>
+    public List<Option> VoiceMics
+    {
+        get
+        {
+            var devices = (_caps?.Mics ?? []).Select(m => (m.Name, m.Value)).ToList();
+            var auto = VoiceMic.Pick("", _s.Audio.MicDevice, devices, _defaultMicName ??= VoiceMic.DefaultName() ?? "");
+            string autoName = VoiceMic.NameOf(auto, devices, _defaultMicName) ?? Text.Get("audio.default");
+            var list = new List<Option> { new(Text.Format("voice.micAuto", autoName), "") };
+            list.AddRange(devices.Where(d => d.Value != "default").Select(d => new Option(d.Name, d.Value)));
+            return list;
+        }
+    }
+
+    string? _defaultMicName;
+
+    public string VoiceMicDevice { get => _s.Voice.MicDevice; set => Set(() => _s.Voice.MicDevice = value ?? ""); }
     public bool ShowVoiceHint => !_s.Voice.Enabled && !_s.Voice.HintDismissed;
 
     Engine.Voice.VoiceStatus? Voice => _status?.Voice;

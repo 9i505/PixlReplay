@@ -574,5 +574,8 @@
   "capture.cardExtra": "More screens",
   "capture.extraTip": "Each save also makes a clip of every screen turned on here",
   "capture.extraNone": "Only one screen is connected",
-  "quality.fpsScreen": "{0} fps • your screen's most"
+  "quality.fpsScreen": "{0} fps • your screen's most",
+  "voice.mic": "Microphone",
+  "voice.micAuto": "Automatic • {0}",
+  "voice.micTip": "Your real microphone, not a virtual one like VB-Cable"
 }

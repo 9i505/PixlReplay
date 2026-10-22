@@ -580,5 +580,8 @@
   "capture.cardExtra": "Другие экраны",
   "capture.extraTip": "Каждое сохранение даёт клип и с каждого экрана здесь",
   "capture.extraNone": "Подключён только один экран",
-  "quality.fpsScreen": "{0} fps • максимум экрана"
+  "quality.fpsScreen": "{0} fps • максимум экрана",
+  "voice.mic": "Микрофон",
+  "voice.micAuto": "Автоматически • {0}",
+  "voice.micTip": "Ваш настоящий микрофон, не виртуальный (VB-Cable)"
 }

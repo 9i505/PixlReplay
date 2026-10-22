@@ -6,7 +6,7 @@ namespace PixlReplay.Engine;
 /// <summary>Scene, capture and audio sources, encoders and outputs built from <see cref="AppSettings"/>.</summary>
 public sealed class CapturePipeline : IDisposable
 {
-    const uint ChannelVideo = 0, ChannelDesktop = 1, ChannelApp = 2, ChannelMic = 3;
+    const uint ChannelVideo = 0, ChannelDesktop = 1, ChannelApp = 2, ChannelMic = 3, ChannelVoice = 4;
     static readonly TimeSpan MinBufferBeforeSave = TimeSpan.FromSeconds(2);
 
     readonly AppSettings _s;
@@ -285,15 +285,38 @@ public sealed class CapturePipeline : IDisposable
             Obs.obs_set_output_source(ChannelDesktop, desktop);
         }
 
+        // Smart Save hears a real microphone: the recording's, or another when the recording takes a virtual one.
+        bool voiceOn = _voice != null && _s.Voice.Enabled;
+        string voiceMic = a.MicDevice;
+        if (voiceOn)
+        {
+            var devices = ObsHost.ListProperty("wasapi_input_capture", "device_id");
+            string? defaultName = VoiceMic.DefaultName();
+            voiceMic = VoiceMic.Pick(_s.Voice.MicDevice, a.MicDevice, devices, defaultName);
+            ObsLog.Info($"smart save hears: {VoiceMic.NameOf(voiceMic, devices, defaultName) ?? voiceMic}" +
+                        (voiceMic != a.MicDevice ? $" (the recording's microphone is {VoiceMic.NameOf(a.MicDevice, devices, defaultName) ?? a.MicDevice})" : ""));
+        }
+        bool sameMic = voiceMic == a.MicDevice;
+
         // Smart Save needs the microphone even when it is not recorded; then it joins no audio track.
-        if (a.Mic || (_voice != null && _s.Voice.Enabled))
+        if (a.Mic || (voiceOn && sameMic))
         {
             using var d = new ObsData().Set("device_id", a.MicDevice);
             IntPtr mic = CreateSource("wasapi_input_capture", "Microphone", d);
             ConfigureAudio(mic, a.Mic ? 1u | (a.SeparateTracks ? VoiceTrack : 0u) : 0u, a.MicVolume);
             AttachMeter(mic, _micLevel);
             Obs.obs_set_output_source(ChannelMic, mic);
-            AttachVoice(mic);
+            if (voiceOn && sameMic)
+                AttachVoice(mic);
+        }
+        if (voiceOn && !sameMic)
+        {
+            // Its own source, in no audio track: only Smart Save hears it.
+            using var d = new ObsData().Set("device_id", voiceMic);
+            IntPtr listen = CreateSource("wasapi_input_capture", "Smart Save microphone", d);
+            ConfigureAudio(listen, 0u, 1.0);
+            Obs.obs_set_output_source(ChannelVoice, listen);
+            AttachVoice(listen);
         }
     }
 
@@ -720,7 +743,7 @@ public sealed class CapturePipeline : IDisposable
         }
         _meters.Clear();
 
-        foreach (uint channel in new[] { ChannelVideo, ChannelDesktop, ChannelApp, ChannelMic })
+        foreach (uint channel in new[] { ChannelVideo, ChannelDesktop, ChannelApp, ChannelMic, ChannelVoice })
             Obs.obs_set_output_source(channel, IntPtr.Zero);
         _systemSource = IntPtr.Zero;
         foreach (IntPtr source in _sources)

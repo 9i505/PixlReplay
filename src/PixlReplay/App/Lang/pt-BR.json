@@ -574,5 +574,8 @@
   "capture.cardExtra": "Mais telas",
   "capture.extraTip": "Cada salvamento também faz um clipe de cada tela ligada aqui",
   "capture.extraNone": "Só há uma tela conectada",
-  "quality.fpsScreen": "{0} fps • o máximo da sua tela"
+  "quality.fpsScreen": "{0} fps • o máximo da sua tela",
+  "voice.mic": "Microfone",
+  "voice.micAuto": "Automático • {0}",
+  "voice.micTip": "Seu microfone real, não um virtual como o VB-Cable"
 }

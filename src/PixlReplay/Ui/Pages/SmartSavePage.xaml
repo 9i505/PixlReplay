@@ -223,6 +223,20 @@
                     </StackPanel>
                 </Grid>
                 <TextBlock Style="{StaticResource Caption}" Text="{l:T voice.sensitivityTip}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                <Border Style="{StaticResource Divider}"/>
+                <!-- The microphone Smart Save hears: a real one, even when the recording takes a virtual one -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="340"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource Label}" Text="{l:T voice.mic}"/>
+                        <TextBlock Style="{StaticResource Caption}" Text="{l:T voice.micTip}"/>
+                    </StackPanel>
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding VoiceMics}" DisplayMemberPath="Label" SelectedValuePath="Value"
+                              SelectedValue="{Binding VoiceMicDevice}" VerticalAlignment="Center" AutomationProperties.Name="{l:T voice.mic}"/>
+                </Grid>
             </StackPanel>
         </Border>
     </StackPanel>
