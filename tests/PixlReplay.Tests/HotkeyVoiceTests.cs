@@ -74,4 +74,20 @@ public static class HotkeyVoiceTests
         after.Voice.MicDevice = "fifine";
         Assert.Equal(true, SettingsDiff.NeedsRebuild(before, after), "its own microphone source");
     }
-}
+
+    [Test]
+    public static void Picking_smart_saves_microphone_does_not_freeze_the_window()
+    {
+        // Every change raises every property: the list must stay the same one, or the box resets and picks again forever.
+        var vm = new Ui.SettingsViewModel();
+        vm.Seed(null, new CapsDto([], [], [new("Default", "default"), new("CABLE Output (VB-Audio Virtual Cable)", "cable"),
+            new("Microphone (fifine Microphone)", "fifine")], [], [], "32.2.2"));
+        var list = vm.VoiceMics;
+        vm.VoiceMicDevice = "fifine";
+        Assert.True(ReferenceEquals(list, vm.VoiceMics), "the same list after a pick");
+        Assert.Equal("fifine", vm.VoiceMicDevice, "picked");
+        vm.VoiceMicDevice = null!; // what a box says while it is refilled
+        Assert.Equal("fifine", vm.VoiceMicDevice, "a refilling box is not a choice");
+        vm.VoiceMicDevice = "";
+        Assert.Equal("", vm.VoiceMicDevice, "back to Automatic");
+    }}

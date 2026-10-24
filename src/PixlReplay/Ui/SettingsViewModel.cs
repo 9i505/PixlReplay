@@ -548,14 +548,22 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
             var monitors = _caps?.Monitors ?? [];
             string? main = Mode == CaptureMode.Screen ? MonitorId : null;
             var chosen = _s.Capture.ExtraMonitors;
+            // Made again only when it would show something else (every change raises every property).
+            string key = $"{main}|{string.Join(",", chosen)}|{string.Join(",", monitors.Select(m => m.Id))}";
+            if (_extraChoices != null && key == _extraChoicesKey)
+                return _extraChoices;
             bool full = chosen.Count(id => monitors.Any(m => m.Id == id && m.Id != main)) >= CapturePipeline.MaxExtraScreens;
-            return [.. monitors.Select((m, i) => (m, i)).Where(p => p.m.Id != main).Select(p =>
+            _extraChoicesKey = key;
+            return _extraChoices = [.. monitors.Select((m, i) => (m, i)).Where(p => p.m.Id != main).Select(p =>
             {
                 bool on = chosen.Contains(p.m.Id);
                 return new ScreenChoice(MonitorLabel(p.m, p.i + 1), on, on || !full, value => SetExtraScreen(p.m.Id, value));
             })];
         }
     }
+
+    List<ScreenChoice>? _extraChoices;
+    string _extraChoicesKey = "";
 
     /// <summary>Only one screen to choose from: the card says so instead of showing an empty list.</summary>
     public bool HasOtherScreens => ExtraScreenChoices.Count > 0;
@@ -1205,18 +1213,36 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
     {
         get
         {
+            // Made again only when the microphones or the recording's change: every change raises every property, and a
+            // new list each time would reset the box, which sets the microphone again, which raises them all again (the
+            // window froze as soon as a microphone was picked).
             var devices = (_caps?.Mics ?? []).Select(m => (m.Name, m.Value)).ToList();
+            string key = _s.Audio.MicDevice + "\n" + string.Join("\n", devices.Select(d => d.Value + "=" + d.Name));
+            if (_voiceMics != null && key == _voiceMicsKey)
+                return _voiceMics;
             var auto = VoiceMic.Pick("", _s.Audio.MicDevice, devices, _defaultMicName ??= VoiceMic.DefaultName() ?? "");
             string autoName = VoiceMic.NameOf(auto, devices, _defaultMicName) ?? Text.Get("audio.default");
             var list = new List<Option> { new(Text.Format("voice.micAuto", autoName), "") };
             list.AddRange(devices.Where(d => d.Value != "default").Select(d => new Option(d.Name, d.Value)));
-            return list;
+            _voiceMicsKey = key;
+            return _voiceMics = list;
         }
     }
 
     string? _defaultMicName;
+    List<Option>? _voiceMics;
+    string _voiceMicsKey = "";
 
-    public string VoiceMicDevice { get => _s.Voice.MicDevice; set => Set(() => _s.Voice.MicDevice = value ?? ""); }
+    /// <summary>The microphone chosen for Smart Save ("" Automatic). A box being refilled says null: not a choice.</summary>
+    public string VoiceMicDevice
+    {
+        get => _s.Voice.MicDevice;
+        set
+        {
+            if (value != null && value != _s.Voice.MicDevice)
+                Set(() => _s.Voice.MicDevice = value);
+        }
+    }
     public bool ShowVoiceHint => !_s.Voice.Enabled && !_s.Voice.HintDismissed;
 
     Engine.Voice.VoiceStatus? Voice => _status?.Voice;
