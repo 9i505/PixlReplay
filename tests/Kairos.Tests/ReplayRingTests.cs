@@ -43,6 +43,28 @@ public static class ReplayRingTests
         Assert.Equal(256L * 1024, new FileInfo(path).Length, "the file stays at its size");
     }
 
+    /// <summary>
+    /// The picture's encoder behind the sound (a game holding the graphics card): the clip ends with its last picture, not
+    /// seconds of sound over a frozen one (a user's report, 1.1.0).
+    /// </summary>
+    [Test]
+    public static void A_clip_ends_with_its_last_picture_when_the_sound_ran_ahead()
+    {
+        using var ring = new ReplayRing(NewPath(), capacity: 1 << 20, keepSeconds: 60, blockBytes: 16 * 1024);
+        for (int s = 0; s < 10; s++)
+            FeedSecond(ring, s);
+        for (int a = 0; a < 3 * 47; a++) // 3 s of sound, no picture
+        {
+            long usec = 10_000_000L + a * 1_000_000L / 47;
+            ring.Append(new RingPacket(usec * 48 / 1000, usec * 48 / 1000, usec, 1, 48000, 1, true), Fill(50, 7));
+        }
+        var slice = ring.Take(5)!;
+        long lastPicture = slice.Packets.Where(p => p.Track == 0).Max(p => p.DtsUsec);
+        long lastSound = slice.Packets.Where(p => p.Track != 0).Max(p => p.DtsUsec);
+        Assert.True(lastSound <= lastPicture + 1_000_000L / 60, $"sound to {lastSound / 1e6:F2} s, picture to {lastPicture / 1e6:F2} s");
+        Assert.True(lastSound >= lastPicture - 1_000_000L / 47 * 2, "the sound still reaches the last picture");
+    }
+
     [Test]
     public static void Older_seconds_than_the_file_holds_are_not_offered()
     {
@@ -73,6 +95,16 @@ public static class ReplayRingTests
         Thread.Sleep(200);
         Assert.True(ring.Take(5) == null, "start fresh: nothing left");
         Assert.Equal(written, ring.BytesWritten, "clearing writes nothing");
+    }
+
+    /// <summary>One picture in the ring (a keyframe, then its sound): a clip of it, no picture before it to time it by.</summary>
+    [Test]
+    public static void A_single_picture_still_makes_a_clip()
+    {
+        using var ring = new ReplayRing(NewPath(), capacity: 128 * 1024, keepSeconds: 60, blockBytes: 16 * 1024);
+        ring.Append(new RingPacket(0, 0, 0, 1, 60, 0, true), Fill(100, 1));
+        ring.Append(new RingPacket(0, 0, 0, 1, 48000, 1, true), Fill(50, 7));
+        Assert.True(ring.Take(5) is { } slice && slice.Packets.Count >= 1, "a clip of the one picture");
     }
 
     [Test]

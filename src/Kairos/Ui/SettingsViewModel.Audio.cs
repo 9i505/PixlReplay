@@ -112,11 +112,17 @@ public sealed partial class SettingsViewModel
     public IReadOnlyList<Option> AddAudioDevices =>
         [.. (_caps?.Mics ?? []).Where(m => m.Value != "default" && m.Value != _s.Audio.MicDevice && _s.Audio.Sources.All(r => r.Target != m.Value)
                                           && VirtualAudio.WholeMixOf(m.Name) == null) // a whole mix would hold every other row again
-            .Select(m => new Option(m.Name, m))];
+            .Select(m => new Option(Text.Ltr(m.Name), m))];
 
-    ICommand? _addAppCommand, _addDeviceCommand, _removeRowCommand;
+    /// <summary>What "+ Add source" offers among the playback devices: a mixer's channel (GoXLR's Music, RØDECaster's Chat).</summary>
+    public IReadOnlyList<Option> AddAudioOutputs =>
+        [.. (_caps?.Speakers ?? []).Where(d => d.Value != "default" && _s.Audio.Sources.All(r => r.Target != d.Value))
+            .Select(d => new Option(Text.Ltr(d.Name), d))];
+
+    ICommand? _addAppCommand, _addDeviceCommand, _addOutputCommand, _removeRowCommand;
     public ICommand AddAudioAppCommand => _addAppCommand ??= new RelayCommand(p => AddAudioApp((NameValue)p!));
     public ICommand AddAudioDeviceCommand => _addDeviceCommand ??= new RelayCommand(p => AddAudioDevice((NameValue)p!));
+    public ICommand AddAudioOutputCommand => _addOutputCommand ??= new RelayCommand(p => AddAudioOutput((NameValue)p!));
     public ICommand RemoveAudioRowCommand => _removeRowCommand ??= new RelayCommand(p => RemoveAudioRow((AudioRowView)p!));
 
     public void AddAudioApp(NameValue app) => AddRow(new AudioSource
@@ -124,9 +130,13 @@ public sealed partial class SettingsViewModel
         Id = "app:" + app.Value.ToLowerInvariant(), Kind = AudioSourceKind.App, Target = app.Value, Label = app.Name,
     });
 
-    public void AddAudioDevice(NameValue device) => AddRow(new AudioSource
+    public void AddAudioDevice(NameValue device) => AddDeviceRow(device, AudioSourceKind.Input, "input:");
+
+    public void AddAudioOutput(NameValue device) => AddDeviceRow(device, AudioSourceKind.Output, "output:");
+
+    void AddDeviceRow(NameValue device, AudioSourceKind kind, string prefix) => AddRow(new AudioSource
     {
-        Id = "input:" + Guid.NewGuid().ToString("N")[..8], Kind = AudioSourceKind.Input, Target = device.Value, Label = device.Name,
+        Id = prefix + Guid.NewGuid().ToString("N")[..8], Kind = kind, Target = device.Value, Label = device.Name,
     });
 
     void AddRow(AudioSource row)
@@ -198,7 +208,7 @@ public sealed partial class SettingsViewModel
             {
                 AudioSourceKind.Game => Text.Get("audio.waitingGame"),
                 AudioSourceKind.OtherSounds => Text.Get("audio.nothingPlaying"),
-                AudioSourceKind.Microphone or AudioSourceKind.Input => "",
+                _ when view.Row.Kind.IsDevice() => "",
                 _ => Text.Get("audio.notRunning"),
             });
     }

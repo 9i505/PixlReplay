@@ -32,9 +32,14 @@ public sealed class AudioRowView : INotifyPropertyChanged
     public string Name => SoundNames.Name(TrackPlanner.Role(_row.Kind), TrackPlanner.Name(_row));
 
     /// <summary>The icon of its track (an input device: a microphone's).</summary>
-    public string Glyph => SoundNames.Glyph(_row.Kind == AudioSourceKind.Input ? TrackRole.Microphone : TrackPlanner.Role(_row.Kind));
+    public string Glyph => SoundNames.Glyph(_row.Kind switch
+    {
+        AudioSourceKind.Input => TrackRole.Microphone,
+        AudioSourceKind.Output => TrackRole.Other,
+        _ => TrackPlanner.Role(_row.Kind),
+    });
 
-    public bool Removable => _row.Kind is AudioSourceKind.App or AudioSourceKind.Input;
+    public bool Removable => _row.Kind == AudioSourceKind.App || _row.Kind.IsDevice() && _row.Kind != AudioSourceKind.Microphone;
 
     /// <summary>The microphone row also picks its device.</summary>
     public bool IsMicrophone => _row.Kind == AudioSourceKind.Microphone;

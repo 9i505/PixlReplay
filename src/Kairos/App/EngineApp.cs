@@ -25,6 +25,7 @@ public sealed class EngineApp : ApplicationContext
     /// <summary>The newest clip saved in this session, until it is deleted from the tray.</summary>
     string? _undoClip;
     readonly System.Windows.Forms.Timer _trayTimer = new() { Interval = 5000 };
+    readonly BorderlessTips _tips;
     /// <summary>One app and Games modes only: the pipeline's once-a-second look at its scene.</summary>
     System.Windows.Forms.Timer? _sceneTimer;
     /// <summary>Separate sources only: which processes each sound row captures, every 2 s.</summary>
@@ -89,6 +90,7 @@ public sealed class EngineApp : ApplicationContext
 
         bool firstRun = !File.Exists(SettingsStore.DefaultPath);
         _settings = SettingsStore.Load(SettingsStore.DefaultPath);
+        _tips = new BorderlessTips(() => _settings.Capture.BorderlessTips);
         // The install wizard's language and start-with-Windows choice, once after it ran.
         bool chosen = InstallChoices.ConsumeInto(_settings, SettingsStore.AppDataDir);
         // A first install takes the usual keys, or for each one another app holds (NVIDIA's are the same), a free one.
@@ -132,6 +134,7 @@ public sealed class EngineApp : ApplicationContext
             RelieveWhenBehind(now, frames);
             if (_saveWatch.Tick(now, _lag.Behind) is { } never)
                 NotSaved(never);
+            WatchUnenteredGame();
             if (UpdateRules.ShouldCheck(_settings.General.CheckUpdates && _updates.Available, _bufferActiveSince, _updates.LastCheck, DateTime.UtcNow))
                 CheckForUpdate();
             RemindUpdate();
@@ -287,6 +290,15 @@ public sealed class EngineApp : ApplicationContext
     /// <summary>A recording that could not start: what to try, in the user's language (OBS's own error goes to the log).</summary>
     public static (string Title, string Detail) RecordFailedToast() => (Text.Get("toast.recordFailed"), Text.Get("fix.closeRecorders"));
 
+    /// <summary>
+    /// A game Kairos cannot capture from inside is recorded from the screen, which a game in exclusive full screen leaves
+    /// black: the tip to set its display mode to Borderless.
+    /// </summary>
+    public static (string Title, string Detail) BorderlessToast(string game) =>
+        // Right to left, the name's spaces kept from breaking: GDI+ widened the one in "Wuthering Waves" (left to right,
+        // the same widened the space before it).
+        (Text.Get("toast.borderless"), Text.Format("toast.borderlessDetail", Text.IsRightToLeft ? Text.Ltr(game.Replace(' ', ' ')) : game));
+
     /// <summary>The message about keys another app holds: one key and what to do, or how many and which.</summary>
     public static (string Title, string Detail) TakenToast(IReadOnlyList<string> keys) => keys.Count == 1
         ? (Text.Format("toast.keyTaken", keys[0]), Text.Get("toast.keyTakenFix"))
@@ -347,6 +359,7 @@ public sealed class EngineApp : ApplicationContext
             };
             _skipping.Reset();
             p.ReplaySaved += (path, quick, names) => _ui.BeginInvoke(() => OnClipSaved(path, names, quick));
+            p.CannotEnterGame += (exe, title) => _unentered = (exe, title); // on the scene timer's tick: the UI thread
             p.CameraSaved += path => _ui.BeginInvoke(() => OnCameraSaved(path));
             p.SaveFailed += () => _ui.BeginInvoke(() =>
             {
@@ -367,21 +380,30 @@ public sealed class EngineApp : ApplicationContext
             if (!_hardwareState.ScreenWgc && !_screenSeen && p.ShowsScreen)
                 _ = CheckScreenPicture(p);
             // Screen and One app: the app in front, each second (a game filling the screen is captured from the game). Games:
-            // the process list every 2 s, only when Riot's games are left to the screen (one snapshot, no process opened).
-            bool guard = p.BuiltMode == CaptureMode.Game && _settings.Capture.ScreenForRiotGames;
-            if (p.BuiltMode != CaptureMode.Game || guard)
+            // whether the game is hooked, each second (the screen under it goes off), and the process list every 2 s when
+            // Riot's games are left to the screen (one snapshot, no process opened).
+            bool guard = _settings.Capture.ScreenForRiotGames, odd = false;
+            EventHandler? look = p.BuiltMode switch
             {
-                _sceneTimer = new System.Windows.Forms.Timer { Interval = guard ? 2000 : 1000 };
-                if (guard)
-                    _sceneTimer.Tick += (_, _) => _pipeline?.SetGuard(AntiCheatGuard.AnyProtectedRunning());
-                else if (p.BuiltMode == CaptureMode.Window)
-                    _sceneTimer.Tick += (_, _) =>
-                    {
-                        var (fullscreen, exe) = GameWatcher.FrontApp();
-                        _pipeline?.WatchWindow(fullscreen, exe);
-                    };
-                else
-                    _sceneTimer.Tick += (_, _) => _pipeline?.WatchScreenGame(GameWatcher.FullscreenForeground());
+                // Games with no screen under the game (no fallback, no guard): nothing to look at, no timer.
+                CaptureMode.Game when guard || _settings.Capture.GameFallbackToScreen => (_, _) =>
+                {
+                    if (guard && (odd = !odd))
+                        _pipeline?.SetGuard(AntiCheatGuard.AnyProtectedRunning());
+                    _pipeline?.WatchGame(GameWatcher.FullscreenForeground());
+                },
+                CaptureMode.Game => null,
+                CaptureMode.Window => (_, _) =>
+                {
+                    var (fullscreen, exe) = GameWatcher.FrontApp();
+                    _pipeline?.WatchWindow(fullscreen, exe);
+                },
+                _ => (_, _) => _pipeline?.WatchScreenGame(GameWatcher.FullscreenForeground()),
+            };
+            if (look != null)
+            {
+                _sceneTimer = new System.Windows.Forms.Timer { Interval = 1000 };
+                _sceneTimer.Tick += look;
                 _sceneTimer.Start();
             }
             if (_settings.Audio.Layout == AudioLayout.Separate)
@@ -424,7 +446,7 @@ public sealed class EngineApp : ApplicationContext
     /// (quality, then frame rate, then size; three at most). It takes effect when the replay next stops (the game ends,
     /// a pause) or the settings are saved: never by throwing away the replay or during a recording.
     /// </summary>
-    void StepDownWhenSkipping(DateTime now, (ulong Bad, ulong All) frames)
+    void StepDownWhenSkipping(DateTime now, FrameCount frames)
     {
         if (!_settings.Video.Auto || _pipeline is not { BufferActive: true, Recording: false } p || _hardwareState.AutoStep >= 3 || _stepPending
             || _lag.Behind || p.Relief < _hardwareState.Relief) // falling behind: the lighter recording acts first (RelieveWhenBehind)
@@ -432,7 +454,7 @@ public sealed class EngineApp : ApplicationContext
             _skipping.Reset();
             return;
         }
-        if (_skipping.Add(now, frames.Bad, frames.All) is not { } bad)
+        if (_skipping.Add(now, frames) is not { } bad)
             return;
         _hardwareState.StepDown(now);
         _hardwareState.Save(HardwarePath);
@@ -443,6 +465,13 @@ public sealed class EngineApp : ApplicationContext
 
     /// <summary>Whether recording keeps up (<see cref="LagGuard"/>), sampled on the engine's tick.</summary>
     readonly LagGuard _lag = new();
+
+    /// <summary>Kairos's share of the graphics card's memory, with the health line and when recording falls behind.</summary>
+    static void LogGpuMemory()
+    {
+        if (GpuMemory.Read() is { } memory)
+            ObsLog.Info(LogLines.GpuMemory(memory.Used, memory.Budget, memory.InSystem));
+    }
 
     /// <summary>"Already as light as it goes" is logged once a run.</summary>
     bool _saidBehind;
@@ -456,7 +485,7 @@ public sealed class EngineApp : ApplicationContext
     /// one step lighter (<see cref="LagRelief"/>), kept for this PC and said once. It is built again at once (what the replay holds
     /// stutters anyway), but never during a recording or while a clip is being written.
     /// </summary>
-    void RelieveWhenBehind(DateTime now, (ulong Bad, ulong All) frames)
+    void RelieveWhenBehind(DateTime now, FrameCount frames)
     {
         if (_pipeline is not { BufferActive: true } p)
         {
@@ -470,18 +499,22 @@ public sealed class EngineApp : ApplicationContext
                 RebuildPipeline();
             return;
         }
-        if (_lag.Add(now, frames.Bad, frames.All) is not { } share || !_lag.BehindFor(now, SustainedBehind))
+        if (_lag.Add(now, frames) is not { } share || !_lag.BehindFor(now, SustainedBehind))
             return;
         if (p.Lightest)
         {
             if (!_saidBehind)
+            {
                 ObsLog.Warn($"recording falls behind: {share:P0} of the frames lagged or skipped for a minute, already as light as it goes");
+                LogGpuMemory();
+            }
             _saidBehind = true;
             return;
         }
         _hardwareState.Relieve(now, p.NextRelief);
         _hardwareState.Save(HardwarePath);
         ObsLog.Warn($"recording falls behind: {share:P0} of the frames lagged or skipped for a minute: lighter (relief {_hardwareState.Relief})");
+        LogGpuMemory();
         Warn((Text.Get("toast.relief"), Text.Get(LagRelief.TextKey(_hardwareState.Relief))));
         if (!p.Recording && !_saveWatch.Pending)
             RebuildPipeline();
@@ -616,6 +649,7 @@ public sealed class EngineApp : ApplicationContext
                 drive = "network";
             }
             ObsLog.Info(LogLines.Health(status, _health.Status, cpuPercent, self.WorkingSet64 >> 20, drive, freeGb));
+            LogGpuMemory();
         }
         _health = (now, cpu, status);
     }
@@ -991,6 +1025,41 @@ public sealed class EngineApp : ApplicationContext
     /// <summary>A problem: the amber card, shown even with the save notes turned off.</summary>
     void Warn((string Title, string Detail) toast) => _toast.Show(toast.Title, toast.Detail, Text.IsRightToLeft, ToastIcon.Warning);
 
+    /// <summary>The last game in front that Kairos could not open (<see cref="CapturePipeline.CannotEnterGame"/>).</summary>
+    (string Exe, string Title)? _unentered;
+
+    /// <summary>
+    /// On the tray's tick: a game Kairos cannot open, seen in exclusive full screen (the screen copy can come out black;
+    /// in Borderless it records as it is, so no tip), gets the Borderless tip once it is left, as Windows shows no card
+    /// over it (<see cref="BorderlessTips"/>).
+    /// </summary>
+    void WatchUnenteredGame()
+    {
+        if (_unentered is { } game && SaveToast.FullScreenBusy
+            && string.Equals(GameWatcher.FullscreenForeground()?.Exe, game.Exe, StringComparison.OrdinalIgnoreCase))
+            _tips.Seen(game.Exe, game.Title);
+        if (_tips.Pending)
+            ShowTip();
+    }
+
+    /// <summary>
+    /// The Borderless tip waiting, shown even with the save notes turned off: the calm card and its chime (with the save
+    /// sound on), once no game holds the screen in exclusive full screen.
+    /// </summary>
+    void ShowTip()
+    {
+        // Asked first: the card's own "not shown" line would be logged at every tick of a match.
+        if (SaveToast.FullScreenBusy || !_tips.TryShow(game =>
+            {
+                var (title, detail) = BorderlessToast(game);
+                return _toast.Show(title, detail, Text.IsRightToLeft, ToastIcon.Tip, ToastTiming.Calm);
+            }))
+            return;
+        if (_settings.General.SoundOnSave)
+            Chime.PlayTip();
+        SettingsStore.Save(SettingsStore.DefaultPath, _settings); // told once a game, across starts
+    }
+
     /// <summary>The small card (never in captures); no sound, which a recording would pick up.</summary>
     void Notify(string title, string detail)
     {
@@ -1063,6 +1132,13 @@ public sealed class EngineApp : ApplicationContext
             await Task.Delay(6000);
             if (Gone())
                 return;
+            // While a game gives the picture the screen is not even copied under it: the canvas tells nothing about it.
+            while (p.GameGivesPicture)
+            {
+                await Task.Delay(5000);
+                if (Gone())
+                    return;
+            }
             if (!await ScreenIsBlack(p, "DXGI"))
             {
                 _screenSeen = true; // this session's later builds need no look
@@ -1269,6 +1345,8 @@ public sealed class EngineApp : ApplicationContext
             _pipeline?.ApplyLive(Ipc.ParseLive(command["live ".Length..]));
             return JsonSerializer.Serialize(new { ok = true }, Ipc.Json);
         }
+        if (command is "save" or "quick" or "toggle" or "record" or "pause-record" or "screenshot" or "delete-last")
+            ObsLog.Info("command: " + command); // the settings window's buttons, or Kairos.exe --send (a Stream Deck, a macro)
         switch (command)
         {
             case "save": SaveClip(false); break;

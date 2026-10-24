@@ -49,6 +49,8 @@ public static class ForegroundApp
     static string FromProcessId(int pid, string? title)
     {
         string? path = ImagePath(pid);
+        if (path == null)
+            return Unopened(ProcessList.NameOf((uint)pid), title);
         string? processName = path != null ? Path.GetFileNameWithoutExtension(path) : null;
         string? product = null;
         if (path != null)
@@ -62,6 +64,13 @@ public static class ForegroundApp
         }
         return ClipOrganizer.AppFolderName(processName, product, title);
     }
+
+    /// <summary>
+    /// A process Kairos cannot open (a game whose anti-cheat guards it): its name from a snapshot, and its window's title
+    /// in place of the name its file would give (a user's Genshin Impact clips all went to "Desktop").
+    /// </summary>
+    internal static string Unopened(string? snapshotName, string? title) =>
+        ClipOrganizer.AppFolderName(snapshotName, string.IsNullOrWhiteSpace(title) ? null : title, title);
 
     /// <summary>The program file of process <paramref name="pid"/>, or null when it is gone.</summary>
     internal static string? ImagePath(int pid)

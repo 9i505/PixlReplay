@@ -25,6 +25,16 @@ public static class SceneRules
     /// </summary>
     public static bool RecordsChosenWindow(CaptureSettings c, string? captureNotice) =>
         BuildMode(c) == CaptureMode.Window && captureNotice == null;
+
+    /// <summary>
+    /// Screen and Games: whether the screen under the game capture is captured. Never while the game gives its picture,
+    /// which covers it: copying the screen too (Desktop Duplication) copies every picture the game shows a second time,
+    /// on the graphics card the game already fills (a user's RTX 3060 Ti in ARC Raiders skipped 76-99 % of the frames
+    /// with both running, a frozen picture with sound; OBS records games with a game capture alone). Without the game's
+    /// picture: always in Screen, in Games when it falls back to the screen (or an anti-cheat forbids hooking).
+    /// </summary>
+    public static bool ScreenUnderGame(CaptureMode mode, bool gamePicture, bool gamesFallBack) =>
+        !gamePicture && (mode == CaptureMode.Screen || gamesFallBack);
 }
 
 /// <summary>Window mode with several apps: which one is recorded now.</summary>
@@ -96,8 +106,10 @@ public sealed class GameOverlay
         "systemsettings", "applicationframehost", "shellexperiencehost", "searchui", "searchhost", "lockapp", "textinputhost",
         "chrome", "msedge", "firefox", "brave", "opera", "opera_gx", "vivaldi", "arc", "discord", "obs64",
         "vlc", "mpc-hc64", "mpc-be64", "potplayermini64", "wmplayer", "microsoft.media.player", "mpv", "powerpnt",
-        // Video apps (Netflix's app, Films & TV, web apps in a WebView), Windows' own screens and the screen-snipping tool.
+        // Video apps (Netflix's app, Films & TV, web apps in a WebView), Windows' own screens and the screen-snipping tool
+        // (its overlay fills the screen: a user's log had the layer hooking it).
         "wwahost", "msedgewebview2", "netflix", "video.ui", "plex", "kodi", "startmenuexperiencehost", "screenclippinghost",
+        "snippingtool",
     };
 
     /// <summary>A fullscreen app the Screen mode's game layer may hook (<paramref name="exe"/> without ".exe").</summary>

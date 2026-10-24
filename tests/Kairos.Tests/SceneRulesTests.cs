@@ -87,6 +87,19 @@ public static class SceneRulesTests
             Assert.True(AntiCheatGuard.GameSoundWindows.Any(w => WindowTarget.ExeName(w) == game), $"{game} has a window string");
     }
 
+    /// <summary>
+    /// Games run as administrator (or guarded by their anti-cheat) cannot be opened, so not hooked: libobs tried every
+    /// 2 s for ever (a user's log, 6,000 lines). Kairos tells them apart first and leaves them to the screen.
+    /// </summary>
+    [Test]
+    public static void Games_kairos_cannot_open_are_told_apart()
+    {
+        Assert.True(ProcessList.CanBeHooked((uint)Environment.ProcessId), "a process of the user's own");
+        Assert.True(!ProcessList.CanBeHooked(4), "the System process: no rights, as a game run as administrator");
+        Assert.Equal(ProcessList.SelfName, ProcessList.NameOf((uint)Environment.ProcessId), "its name from the snapshot");
+        Assert.Equal(null, ProcessList.NameOf(uint.MaxValue - 2), "none: null");
+    }
+
     [Test]
     public static void The_running_list_has_this_process()
     {
@@ -122,6 +135,23 @@ public static class SceneRulesTests
         Assert.Equal((null, false), layer.Update("Other:Cls:other.exe", false, t0.AddSeconds(8)), "waiting for its picture");
         Assert.Equal(("Other:Cls:other.exe", false), layer.Update("Other:Cls:other.exe", false, t0.AddSeconds(13)), "8 s without a picture: hooked again");
         Assert.Equal((null, false), layer.Update("Other:Cls:other.exe", false, t0.AddSeconds(14)), "and waits again");
+    }
+
+    /// <summary>
+    /// A user's RTX 3060 Ti in ARC Raiders: the screen was copied under the hooked game, every picture of the game taken
+    /// twice, and the encoder skipped 76-99 % of them (a frozen picture with sound). The screen is copied only while no
+    /// game gives its picture: what OBS does with a game capture alone.
+    /// </summary>
+    [Test]
+    public static void The_screen_under_a_game_is_copied_only_while_the_game_gives_no_picture()
+    {
+        Assert.True(!SceneRules.ScreenUnderGame(CaptureMode.Screen, gamePicture: true, gamesFallBack: false), "Screen, the game shows: not copied");
+        Assert.True(SceneRules.ScreenUnderGame(CaptureMode.Screen, gamePicture: false, gamesFallBack: false), "Screen, no game: the screen");
+        Assert.True(!SceneRules.ScreenUnderGame(CaptureMode.Game, gamePicture: true, gamesFallBack: true), "Games, hooked: not copied");
+        Assert.True(SceneRules.ScreenUnderGame(CaptureMode.Game, gamePicture: false, gamesFallBack: true), "Games, no game: falls back to the screen");
+        Assert.True(!SceneRules.ScreenUnderGame(CaptureMode.Game, gamePicture: false, gamesFallBack: false), "Games without the fallback: games only");
+        Assert.True(!GameOverlay.MayHook("SnippingTool") && !GameOverlay.MayHook("snippingtool"), "the snipping tool's overlay is never hooked");
+        Assert.True(GameOverlay.MayHook("PioneerGame"), "ARC Raiders is");
     }
 
     [Test]

@@ -87,20 +87,29 @@ public static class LogLines
         "hotkeys: " + string.Join(" · ", keys.Select(k => string.IsNullOrWhiteSpace(k.Key) ? $"{k.Id}=none" : $"{k.Id}={k.Key} {(k.Held ? "ok" : "taken")}"));
 
     /// <summary>
-    /// How it ran since the last health line: frames skipped by the encoder and lagged by the picture out of the frames
-    /// since then (a rebuild's fresh counters count from zero), and Kairos's own CPU, memory and the clips drive's room.
+    /// How it ran since the last health line: frames skipped by the encoder out of those it was given (a rebuild's fresh
+    /// counters count from zero), pictures lagged out of those rendered (libobs counts them for the whole session: a
+    /// rebuild once made it "lagged 885 %"), and Kairos's own CPU, memory and the clips drive's room.
     /// </summary>
     public static string Health(EngineStatus? now, EngineStatus? before, double cpuPercent, long ramMb, string drive, long freeGb)
     {
         string rest = $"cpu {cpuPercent:F0}% · ram {ramMb} MB · {drive} {freeGb} GB free";
         if (now == null)
             return $"health: replay not built · {rest}";
-        bool fresh = before == null || now.TotalFrames < before.TotalFrames;
-        double total = Math.Max(1, now.TotalFrames - (fresh ? 0 : before!.TotalFrames));
-        double skipped = now.SkippedFrames - (fresh ? 0 : Math.Min(before!.SkippedFrames, now.SkippedFrames));
-        double lagged = now.LaggedFrames - (fresh ? 0 : Math.Min(before!.LaggedFrames, now.LaggedFrames));
-        return $"health: replay {OnOff(now.BufferActive)} · {now.Fps:F1} fps · skipped {skipped / total:P2} · lagged {lagged / total:P2} · {rest}"
+        var was = before?.Frames ?? default;
+        return $"health: replay {OnOff(now.BufferActive)} · {now.Fps:F1} fps · skipped {now.Frames.SkippedSince(was):P2} · lagged {now.Frames.LaggedSince(was):P2} · {rest}"
             .Replace(" %", "%");
+    }
+
+    /// <summary>
+    /// Kairos's share of the graphics card's memory (<see cref="Engine.GpuMemory"/>): over its budget Windows pages it out
+    /// and frames wait (a game filling the card); what is in system memory was paged out already.
+    /// </summary>
+    public static string GpuMemory(ulong used, ulong budget, ulong inSystem)
+    {
+        const double Mb = 1 << 20;
+        return FormattableString.Invariant($"gpu memory: Kairos uses {used / Mb:F0} MB of its {budget / Mb:F0} MB budget on the card · {inSystem / Mb:F0} MB in system memory")
+               + (used > budget ? " · over budget: Windows pages it out" : "");
     }
 
     /// <summary>The session at its end: how long, what was saved or not, and how many hotkey presses reached Kairos.</summary>

@@ -51,8 +51,9 @@ public sealed class AudioWatcher(Func<AppSettings> settings, Action<IReadOnlyDic
             var processes = ProcessList.All();
             var running = processes.Select(p => p.Pid).ToHashSet();
             uint game = Chosen(s, processes, window) ?? GameFollow.Next(following, fullscreen, front, running, self);
-            var assignment = AudioPartition.Assign(processes, CoreAudio.ProcessesWithSound(),
-                new PartitionInput(game, s.Audio.Sources, ProcessList.SelfName), ProcessList.StartedAt);
+            var (withSound, onOutputs) = CoreAudio.Sound(s.Audio.Sources);
+            var assignment = AudioPartition.Assign(processes, withSound, new PartitionInput(game, s.Audio.Sources, ProcessList.SelfName, onOutputs),
+                ProcessList.StartedAt);
             return (game, assignment);
         }).ContinueWith(t =>
         {

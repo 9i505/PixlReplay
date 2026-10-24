@@ -7,6 +7,17 @@ public static class ClipTests
 {
     static string TempDir() => Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "kairos-tests", Guid.NewGuid().ToString("N"))).FullName;
 
+    /// <summary>A user's Genshin Impact clips all went to "Desktop": its anti-cheat lets Kairos read neither its file nor its product.</summary>
+    [Test]
+    public static void A_game_kairos_cannot_open_is_named_after_its_window()
+    {
+        Assert.Equal("Genshin Impact", ForegroundApp.Unopened("GenshinImpact", "Genshin Impact"), "its window's title");
+        Assert.Equal("Honkai Star Rail", ForegroundApp.Unopened("StarRail", "Honkai: Star Rail"), "':' is no file name's");
+        Assert.Equal("Client-Win64-Shipping", ForegroundApp.Unopened("Client-Win64-Shipping", " "), "no title: its exe");
+        Assert.Equal("Desktop", ForegroundApp.Unopened(null, null), "gone: as before");
+        Assert.Equal("Desktop", ForegroundApp.Unopened("explorer", "Program Manager"), "the shell stays the desktop");
+    }
+
     [Test]
     public static void Product_name_is_preferred_over_process_name()
     {

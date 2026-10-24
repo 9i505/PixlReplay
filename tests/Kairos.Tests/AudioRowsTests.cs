@@ -76,6 +76,51 @@ public static class AudioRowsTests
         Assert.True(vm.AudioRows.All(r => r.State == ""), string.Join(", ", vm.AudioRows.Select(r => $"{r.Name}: {r.State}")));
     }
 
+    /// <summary>
+    /// A mixer's channels are playback devices (GoXLR's Music, RØDECaster's Chat): "Add source" offers them too, and each
+    /// becomes a row of its own that can go again (users of both asked, 1.1.0).
+    /// </summary>
+    [Test]
+    public static void Add_source_offers_playback_devices()
+    {
+        var vm = Vm(AudioLayout.Separate);
+        vm.Seed(null, new CapsDto([], [], [new("Default", "default")],
+            [new("Default", "default"), new("Music (TC-Helicon GoXLR)", "music"), new("Speakers (RODECaster Duo Chat)", "chat")], [], "32.2.2"));
+        Assert.Equal("Music (TC-Helicon GoXLR),Speakers (RODECaster Duo Chat)", string.Join(",", vm.AddAudioOutputs.Select(o => o.Label)),
+            "the playback devices, Default aside");
+        vm.AddAudioOutputCommand.Execute(new NameValue("Music (TC-Helicon GoXLR)", "music"));
+        var row = vm.AudioRows.Single(r => r.Row.Kind == AudioSourceKind.Output);
+        Assert.True(row.Row is { Target: "music", Label: "Music (TC-Helicon GoXLR)" } && row.Removable, "its row, removable");
+        Assert.Equal("Speakers (RODECaster Duo Chat)", string.Join(",", vm.AddAudioOutputs.Select(o => o.Label)), "not offered twice");
+    }
+
+    /// <summary>
+    /// Device names in "+ Add source" read left to right in Arabic: "Music (2- TC-HELICON GoXLR Mini)" came out as
+    /// "(Music (2- TC-HELICON GoXLR Mini" (a user's screenshot), as the device lists elsewhere already do.
+    /// </summary>
+    [Test]
+    public static void Add_source_device_names_keep_their_brackets_in_arabic()
+    {
+        Text.Language = "ar";
+        try
+        {
+            var s = new AppSettings();
+            s.Audio.Layout = AudioLayout.Separate;
+            s.Normalize();
+            var vm = new SettingsViewModel();
+            vm.SeedSettings(s);
+            vm.Seed(null, new CapsDto([], [], [new("Default", "default"), new("Microphone (DroidCam Audio)", "droid")],
+                [new("Default", "default"), new("Music (2- TC-HELICON GoXLR Mini)", "music")], [], "32.2.2"));
+            static bool Wrapped(string label) => label.StartsWith('‎') && label.EndsWith('‎');
+            Assert.True(vm.AddAudioDevices.All(o => Wrapped(o.Label)), "input devices");
+            Assert.True(vm.AddAudioOutputs.All(o => Wrapped(o.Label)), "playback devices");
+        }
+        finally
+        {
+            Text.Language = "en";
+        }
+    }
+
     [Test]
     public static void The_recorded_microphone_is_not_offered_again()
     {

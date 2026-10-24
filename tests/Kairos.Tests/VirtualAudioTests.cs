@@ -57,9 +57,14 @@ public static class VirtualAudioTests
     [Test]
     public static void The_audio_page_warns_when_the_system_device_is_a_chat_device()
     {
+        // Wave Link plays all of it on the headphones (its Monitor Mix): any one of its devices misses the rest, as Sonar's.
         var vm = Together(new("Voice Chat (Elgato Virtual Audio)", "chat-id"), new("Game (Elgato Virtual Audio)", "game-id"));
-        Assert.True(vm.SystemDeviceWarning.Contains("Game (Elgato Virtual Audio)", StringComparison.Ordinal), "default is a Chat device: pick Game (" + vm.SystemDeviceWarning + ")");
+        Assert.True(vm.SystemDeviceWarning.Contains("Wave Link splits it", StringComparison.Ordinal), "default is a Chat device (" + vm.SystemDeviceWarning + ")");
         Assert.True(vm.CaptureWarning == vm.SystemDeviceWarning, "the Status page says it too");
+        vm.SystemDevice = "game-id";
+        Assert.True(vm.SystemDeviceWarning.Contains("Wave Link splits it", StringComparison.Ordinal), "the game device misses chat and music");
+        vm = Together(new("Voice Chat (Voicemeeter VAIO)", "chat-id"), new("Game (Voicemeeter VAIO)", "game-id"));
+        Assert.True(vm.SystemDeviceWarning.Contains("Game (Voicemeeter VAIO)", StringComparison.Ordinal), "a chat device of a mixer that plays nothing on the headphones: pick Game (" + vm.SystemDeviceWarning + ")");
         vm.SystemDevice = "game-id";
         Assert.Equal("", vm.SystemDeviceWarning, "the game device: nothing to say");
         vm.AudioLayout = AudioLayout.Separate;
@@ -120,6 +125,32 @@ public static class VirtualAudioTests
         Assert.Equal("GoXLR,GoXLR", VirtualAudio.WholeMixOf("Broadcast Stream Mix (TC-Helicon GoXLR Mini)") + "," + VirtualAudio.WholeMixOf("Broadcast Stream Mix (TC-HELICON GO XLR)"),
             "Broadcast Stream Mix is the whole mix");
         Assert.Equal(null, VirtualAudio.WholeMixOf("Chat Mic (TC-Helicon GoXLR)") ?? VirtualAudio.WholeMixOf("Microphone (Shure MV7)"), "a voice is not");
+    }
+
+    /// <summary>GoXLR's VOD is its mix too (all but the music, for streams' recordings): never a source of its own.</summary>
+    [Test]
+    public static void Goxlr_vod_is_a_whole_mix_and_its_app_no_source()
+    {
+        Assert.Equal("GoXLR", VirtualAudio.WholeMixOf("VOD (2- TC-HELICON GoXLR Mini)"), "VOD holds the game, chat and voice");
+        Assert.True(VirtualAudio.IsMixerApp("GoXLR App"), "GoXLR's app is no sound of its own");
+        Assert.True(!VirtualAudio.IsMixerApp("Steam"), "an ordinary app");
+    }
+
+    /// <summary>
+    /// RØDECaster Duo and Pro II mix in the hardware like GoXLR: Main Stereo comes back as a recording device holding all
+    /// of it. Elgato Wave Link plays its Monitor Mix on your headphones and sends its Stream Mix as a recording device.
+    /// </summary>
+    [Test]
+    public static void Rodecaster_and_wave_link_are_known()
+    {
+        string Role(string name) => VirtualAudio.Classify(name) is { } v ? $"{v.Brand}/{v.Role}/{v.MixOnYourDevice}/{v.MixOnARecordingDevice}" : "real";
+        Assert.Equal("RØDECaster/System/False/True", Role("Speakers (RODECaster Duo Main Stereo)"), "Duo's main output");
+        Assert.Equal("RØDECaster/Chat/False/True", Role("Speakers (RODECaster Duo Chat)"), "its chat output");
+        Assert.Equal("RØDECaster/System/False/True", Role("Speakers (RØDECaster Pro II Main Stereo)"), "the Pro II, spelled with Ø");
+        Assert.Equal("RØDECaster", VirtualAudio.WholeMixOf("Microphone (RODECaster Duo Main Stereo)"), "its main mix as a recording device");
+        Assert.Equal("Wave Link/System/True/True", Role("System (Elgato Virtual Audio)"), "Wave Link's System");
+        Assert.Equal("Wave Link", VirtualAudio.WholeMixOf("Stream Mix (Elgato Virtual Audio)"), "its stream mix");
+        Assert.True(VirtualAudio.IsMixerApp("WaveLink"), "Wave Link plays every app's sound again");
     }
 
     /// <summary>

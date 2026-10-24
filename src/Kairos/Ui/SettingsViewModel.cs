@@ -794,12 +794,12 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
     public int CustomMbps { get => _s.Video.CustomMbps; set => Set(() => _s.Video.CustomMbps = value); }
     public int PresetLevel
     {
-        get => int.TryParse(_s.Video.Preset.TrimStart('p', 'P'), out int n) ? Math.Clamp(n, 1, 7) : 5;
-        set => Set(() => _s.Video.Preset = $"p{Math.Clamp(value, 1, 7)}");
+        get => int.Parse(VideoSettings.Capped(_s.Video.Preset).AsSpan(1));
+        set => Set(() => _s.Video.Preset = $"p{Math.Clamp(value, 1, VideoSettings.MaxPreset)}");
     }
 
-    /// <summary>The encoder speed in words: faster (1–2), balanced (3–5), best quality (6–7).</summary>
-    public string PresetWord => Text.Get(PresetLevel switch { <= 2 => "quality.speedFast", <= 5 => "quality.speedBalanced", _ => "quality.speedBest" });
+    /// <summary>The encoder speed in words: faster (1–2), balanced (3–4), best quality (5).</summary>
+    public string PresetWord => Text.Get(PresetLevel switch { <= 2 => "quality.speedFast", < VideoSettings.MaxPreset => "quality.speedBalanced", _ => "quality.speedBest" });
 
     (int W, int H) BaseSize
     {

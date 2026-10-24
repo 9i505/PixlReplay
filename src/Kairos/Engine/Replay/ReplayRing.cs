@@ -147,7 +147,8 @@ public sealed class ReplayRing : IDisposable
 
     /// <summary>
     /// The packets of the last <paramref name="seconds"/>, from the first video keyframe at or after that time (sound
-    /// from the same moment); null when there is none yet. The open block is handed to the writer first; only a copy of
+    /// from the same moment) to the newest picture (sound the picture's encoder has not caught up with yet, a game
+    /// holding the graphics card, would play over a frozen picture); null when there is none yet. The open block is handed to the writer first; only a copy of
     /// the index is made under the lock (the encoder thread waits on it).
     /// </summary>
     public RingSlice? Take(double seconds)
@@ -167,9 +168,11 @@ public sealed class ReplayRing : IDisposable
         if (start < 0)
             return null;
         long t0 = all[start].Packet.DtsUsec;
+        int before = newest > 0 ? Array.FindLastIndex(all, newest - 1, e => e.Packet.Track == 0) : -1;
+        long end = all[newest].Packet.DtsUsec + (before >= 0 ? all[newest].Packet.DtsUsec - all[before].Packet.DtsUsec : 0); // its frame's end
         var picked = new List<RingEntry>(all.Length - start);
         for (int i = start; i < all.Length; i++)
-            if (all[i].Packet.Track == 0 || all[i].Packet.DtsUsec >= t0)
+            if (all[i].Packet.Track == 0 || all[i].Packet.DtsUsec >= t0 && all[i].Packet.DtsUsec < end)
                 picked.Add(all[i]);
         return new RingSlice(this, picked);
     }

@@ -47,6 +47,22 @@ public static class AudioPartitionTests
         Assert.Equal("50", Other(a), "Spotify; not Sonar, Broadcast or Voicemeeter (each app is heard from itself)");
     }
 
+    /// <summary>
+    /// A mixer's output added as a row (GoXLR's Music, RØDECaster's Chat): what plays on it is heard from it, so the
+    /// apps playing there leave Other sounds and their own rows (each sound once).
+    /// </summary>
+    [Test]
+    public static void An_app_on_an_added_output_device_is_heard_from_that_device()
+    {
+        var music = new AudioSource { Id = "output:music", Kind = AudioSourceKind.Output, Target = "{music-device}", Label = "Music (GoXLR)" };
+        var input = Rows(21, music) with { OnOutputs = new HashSet<uint> { 41, 31 } }; // chrome's audio and Discord play on it
+        var a = AudioPartition.Assign(Processes, new HashSet<uint> { 21, 31, 41, 50 }, input);
+        Assert.Equal("50", Other(a), "Spotify only: chrome is heard from the Music device");
+        Assert.True(!a.ContainsKey("discord"), "Discord plays on that device: its row hears it there, not twice");
+        Assert.Equal("21", string.Join(",", a["game"]), "the game elsewhere keeps its row");
+        Assert.True(!a.ContainsKey(music.Id), "a device row is no process capture");
+    }
+
     [Test]
     public static void A_launcher_is_never_captured_with_its_game()
     {
