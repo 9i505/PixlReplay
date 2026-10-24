@@ -202,7 +202,7 @@
             </Grid>
         </Border>
 
-        <!-- Help: PixlReplay's Discord, and the report to send there when something goes wrong -->
+        <!-- Help: Pixl Replay's GitHub issues, and the report to send there when something goes wrong -->
         <Border Style="{StaticResource Card}">
             <StackPanel>
                 <Grid>

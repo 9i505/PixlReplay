@@ -10,7 +10,7 @@
             <Setter Property="Height" Value="32"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
@@ -20,7 +20,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource CardHover}"/>
+                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CardHover}"/>
                             </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource AccentHover}"/>
@@ -110,7 +110,7 @@
                                             Visibility="{Binding Removable, Converter={StaticResource Vis}}"
                                             Command="{Binding DataContext.RemoveAudioRowCommand, ElementName=Page}" CommandParameter="{Binding}"
                                             ToolTip="{l:T audio.remove}" AutomationProperties.Name="{l:T audio.remove}">
-                                        <TextBlock Style="{StaticResource Icon}" Text="&#xE711;" FontSize="12" Foreground="{StaticResource TextSecondary}"/>
+                                        <TextBlock Style="{StaticResource Icon}" Text="&#xE711;" FontSize="12" Foreground="{DynamicResource TextSecondary}"/>
                                     </Button>
                                 </Grid>
                                 <Grid Margin="30,6,0,0">

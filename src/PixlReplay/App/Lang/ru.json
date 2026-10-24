@@ -302,7 +302,7 @@
   "general.freeLocalTip": "После загрузки клипы только в облаке: экономия места",
   "general.cloudStreams": "Google Drive сам хранит клипы в облаке.",
   "general.community": "Помощь и идеи",
-  "general.discord": "Перейти в Discord",
+  "general.discord": "Сообщить на GitHub",
   "version.beta": "{0} бета {1}",
   "saving.folder": "Папка с клипами",
   "saving.browse": "Изменить",

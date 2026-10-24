@@ -25,7 +25,7 @@ public static class AppInfo
     public static string PipeFor(int session) => $"PixlReplay.{session}";
     public const string RunValueName = "PixlReplay";
     /// <summary>PixlReplay's Discord server: help, problems and ideas.</summary>
-    public const string DiscordUrl = "https://discord.gg/YWgaS6JRzF";
+    public const string DiscordUrl = "https://github.com/9i55/PixlReplay/issues";  // Pixl Replay's help: its GitHub issues
 
     /// <summary>The full version, a prerelease part included ("1.0.0-beta.1"), without the build details after "+".</summary>
     public static string Version { get; } =

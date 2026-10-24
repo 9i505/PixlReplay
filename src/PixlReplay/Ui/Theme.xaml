@@ -252,7 +252,7 @@
 
     <!-- Two-sided pill (the replay's place): the sides inside one rounded track -->
     <Style x:Key="PillSide" TargetType="RadioButton">
-        <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
         <Setter Property="FontSize" Value="13.5"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -265,14 +265,14 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Accent}"/>
                             <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45"/>

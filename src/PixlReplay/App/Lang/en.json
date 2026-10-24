@@ -300,7 +300,7 @@
   "general.freeLocalTip": "Kept online only once uploaded, to save disk space",
   "general.cloudStreams": "Google Drive keeps the clips online by itself.",
   "general.community": "Help and ideas",
-  "general.discord": "Join Discord",
+  "general.discord": "Report on GitHub",
   "version.beta": "{0} beta {1}",
   "saving.folder": "Clips folder",
   "saving.browse": "Change",

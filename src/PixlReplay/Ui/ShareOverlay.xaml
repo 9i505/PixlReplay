@@ -299,7 +299,7 @@
                                             <Border CornerRadius="19">
                                                 <Border.Style>
                                                     <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="{StaticResource StrokeStrong}"/>
+                                                        <Setter Property="Background" Value="{DynamicResource StrokeStrong}"/>
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding IsCopied}" Value="True">
                                                                 <Setter Property="Background" Value="{StaticResource Success}"/>
@@ -323,7 +323,7 @@
                                                     </TextBlock.Style>
                                                 </TextBlock>
                                             </Border>
-                                            <l:ProgressRing Value="{Binding CopyProgress}" Thickness="3.5" Fill="{DynamicResource Accent}" Track="{StaticResource Stroke}"
+                                            <l:ProgressRing Value="{Binding CopyProgress}" Thickness="3.5" Fill="{DynamicResource Accent}" Track="{DynamicResource Stroke}"
                                                             Visibility="{Binding IsCopyConverting, Converter={StaticResource Vis}}"/>
                                             <TextBlock Text="{Binding CopyPercent}" FontSize="10.5" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
                                                        FlowDirection="LeftToRight" Visibility="{Binding IsCopyConverting, Converter={StaticResource Vis}}"/>

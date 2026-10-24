@@ -298,7 +298,7 @@
   "general.freeLocalTip": "上传后仅保留在云端，节省磁盘空间",
   "general.cloudStreams": "Google Drive 会自行将片段保留在云端。",
   "general.community": "帮助与建议",
-  "general.discord": "加入 Discord",
+  "general.discord": "在 GitHub 反馈",
   "version.beta": "{0} 测试版 {1}",
   "saving.folder": "片段文件夹",
   "saving.browse": "更改",

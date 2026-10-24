@@ -271,7 +271,7 @@
                     <TextBlock Style="{StaticResource Icon}" Text="{Binding Glyph}" FontSize="14"/>
                 </ToggleButton>
                 <TextBlock x:Name="Glyph" Style="{StaticResource Icon}" Text="{Binding Glyph}" FontSize="14" Width="28" TextAlignment="Center"
-                           VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}" ToolTip="{Binding Name}" Visibility="Collapsed"/>
+                           VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" ToolTip="{Binding Name}" Visibility="Collapsed"/>
                 <Slider Grid.Column="1" Style="{StaticResource TrackSlider}" Value="{Binding Level}" IsEnabled="{Binding Enabled}" ToolTip="{Binding Name}"
                         AutomationProperties.Name="{Binding Name}"/>
                 <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding Label}"/>
@@ -294,7 +294,7 @@
                     <TextBlock Style="{StaticResource Icon}" Text="{Binding Glyph}" FontSize="14"/>
                 </ToggleButton>
                 <TextBlock x:Name="Glyph" Style="{StaticResource Icon}" Text="{Binding Glyph}" FontSize="14" Width="28" TextAlignment="Center"
-                           VerticalAlignment="Center" Foreground="{StaticResource TextSecondary}" Visibility="Collapsed"/>
+                           VerticalAlignment="Center" Foreground="{DynamicResource TextSecondary}" Visibility="Collapsed"/>
                 <Slider Grid.Column="1" Style="{StaticResource TrackSlider}" Value="{Binding Level}" IsEnabled="{Binding Enabled}"
                         AutomationProperties.Name="{Binding Name}"/>
             </Grid>
@@ -567,7 +567,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Style="{StaticResource Icon}" Text="&#xE767;" FontSize="14" Width="28" TextAlignment="Center" VerticalAlignment="Center"
-                                           Foreground="{StaticResource TextSecondary}"/>
+                                           Foreground="{DynamicResource TextSecondary}"/>
                                 <Slider Grid.Column="1" Style="{StaticResource EditSlider}" Minimum="0" Maximum="2" Value="{Binding AllLevel}" SmallChange="0.05"
                                         LargeChange="0.1" AutomationProperties.Name="{l:T editor.allSound}"/>
                                 <TextBlock Grid.Column="2" Style="{StaticResource ValueText}" Text="{Binding AllLabel}"/>

@@ -153,7 +153,7 @@
                                     <Grid Width="46" Height="46" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
                                           Visibility="{Binding Preparing, Converter={StaticResource Vis}}">
                                         <Ellipse Fill="#EE231D1C"/>
-                                        <l:ProgressRing Value="{Binding PrepareProgress}" Thickness="3.5" Fill="{DynamicResource Accent}" Track="{StaticResource Stroke}"/>
+                                        <l:ProgressRing Value="{Binding PrepareProgress}" Thickness="3.5" Fill="{DynamicResource Accent}" Track="{DynamicResource Stroke}"/>
                                         <TextBlock Text="{Binding PreparePercent}" FontSize="10.5" FontWeight="SemiBold" Foreground="White"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center" FlowDirection="LeftToRight"/>
                                     </Grid>
