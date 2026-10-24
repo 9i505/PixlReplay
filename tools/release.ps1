@@ -31,7 +31,9 @@ param(
     [string]$ExpectedObs = '32.2.2',
     [string]$SignThumbprint = $env:PIXLREPLAY_SIGN_THUMBPRINT,
     [string]$TimestampUrl = 'http://timestamp.digicert.com',
-    # Without OBS installed: take libobs from an installed Pixl Replay's ...\current folder (see stage-runtime.ps1).
+    # OBS Studio's folder (installed, or its official Windows zip unpacked): libobs and the plugins Pixl Replay needs.
+    [string]$Obs = 'C:\Program Files\obs-studio',
+    # Without OBS at all: take libobs from an installed Pixl Replay's ...\current folder (see stage-runtime.ps1).
     [string]$ObsFromInstall
 )
 
@@ -72,7 +74,7 @@ if ($SignThumbprint) {
 $stage = Join-Path $repo "dist\stage-$PackId-$Version"
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 if ($ObsFromInstall) { & (Join-Path $PSScriptRoot 'stage-runtime.ps1') -Dest $stage -FromInstall $ObsFromInstall | Write-Output }
-else { & (Join-Path $PSScriptRoot 'stage-runtime.ps1') -Dest $stage | Write-Output }
+else { & (Join-Path $PSScriptRoot 'stage-runtime.ps1') -Dest $stage -Obs $Obs | Write-Output }
 $obsVersion = (Get-Content (Join-Path $stage 'libobs-version.txt')).Trim()
 if ($obsVersion -ne $ExpectedObs) { throw "Installed OBS is $obsVersion, expected $ExpectedObs (pass -ExpectedObs after re-testing)" }
 dotnet publish (Join-Path $repo 'src\PixlReplay') -c Release -o $stage --self-contained true "-p:Version=$Version" --nologo -v quiet
