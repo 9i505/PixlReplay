@@ -42,13 +42,7 @@ public static partial class SettingsApp
                 app.Shutdown();
             };
             if (old != null)
-            {
-                window.WindowStartupLocation = WindowStartupLocation.Manual;
-                window.Left = old.Left;
-                window.Top = old.Top;
-                window.Width = old.Width;
-                window.Height = old.Height;
-            }
+                WindowPlacement.Carry(old, window);
             window.Show();
             if (old != null)
             {

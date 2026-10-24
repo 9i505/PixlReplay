@@ -53,6 +53,8 @@ public static class ThemeColors
     public static uint Idle => Mix(Text, Background, 0.38);
 
     public const uint Success = 0x2ED47A;
+    /// <summary>Saved (Kairos 1.1's name for the same green).</summary>
+    public const uint Saved = Success;
     public const uint Warning = 0xFFB020;
 
     public static uint Mix(uint from, uint to, double amount)

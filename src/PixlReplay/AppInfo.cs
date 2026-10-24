@@ -8,10 +8,24 @@ public static class AppInfo
 {
     public const string Name = "PixlReplay";
     public const string EngineMutex = @"Local\PixlReplay.Engine";
+
+    /// <summary>
+    /// The engine's one-at-a-time lock: a test run with a pipe of its own (PIXLREPLAY_PIPE) has a lock of its own too, so it
+    /// runs beside the installed PixlReplay instead of handing over to it.
+    /// </summary>
+    public static string EngineLock(string? pipe) => string.IsNullOrEmpty(pipe) ? EngineMutex : $"{EngineMutex}.{pipe}";
     public const string SettingsMutex = @"Local\PixlReplay.Settings";
     public const string SettingsShowEvent = @"Local\PixlReplay.Settings.Show";
-    public const string PipeName = "PixlReplay";
+    /// <summary>
+    /// The engine's pipe in this Windows session, like its lock (Local\): pipe names are shared by the whole PC, so with
+    /// one name a second person signed in at the same time had a PixlReplay whose window could not reach its engine.
+    /// </summary>
+    public static string PipeName { get; } = PipeFor(System.Diagnostics.Process.GetCurrentProcess().SessionId);
+
+    public static string PipeFor(int session) => $"PixlReplay.{session}";
     public const string RunValueName = "PixlReplay";
+    /// <summary>PixlReplay's Discord server: help, problems and ideas.</summary>
+    public const string DiscordUrl = "https://discord.gg/YWgaS6JRzF";
 
     /// <summary>The full version, a prerelease part included ("1.0.0-beta.1"), without the build details after "+".</summary>
     public static string Version { get; } =

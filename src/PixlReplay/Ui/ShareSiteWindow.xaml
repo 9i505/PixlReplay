@@ -15,8 +15,8 @@
         <Border Background="{DynamicResource NavBg}" BorderBrush="{DynamicResource Stroke}" BorderThickness="0,0,0,1" Padding="18,10">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="16,0,0,0">
-                    <Border x:Name="FileTile" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource StrokeStrong}" BorderThickness="1"
-                            CornerRadius="8" Padding="12,7" Cursor="SizeAll" MouseLeftButtonDown="OnTileDown" MouseMove="OnTileMove"
+                    <Border x:Name="FileTile" Background="{StaticResource Surface}" BorderBrush="{StaticResource StrokeStrong}" BorderThickness="1"
+                            CornerRadius="8" Padding="12,7" Cursor="SizeAll"
                             ToolTip="{Binding ElementName=FileName, Path=Text}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Style="{StaticResource Icon}" Text="&#xE7C2;" FontSize="13" Margin="0,0,8,0"/>
