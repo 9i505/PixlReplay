@@ -3,6 +3,7 @@ using PixlReplay.Settings;
 namespace PixlReplay.Engine;
 
 /// <param name="Cq">NVENC target quality (CQVBR), or CRF for x264.</param>
+/// <param name="Best">Ultra or High with room on the card: the encoder's slowest, best settings (see EncoderCatalog).</param>
 public sealed record EncoderPlan(
     string EncoderId,
     string RateControl,
@@ -10,7 +11,8 @@ public sealed record EncoderPlan(
     int MaxBitrateKbps,
     int KeyintSec,
     string Preset,
-    int BFrames);
+    int BFrames,
+    bool Best = false);
 
 public static class EncoderPresets
 {
@@ -18,6 +20,12 @@ public static class EncoderPresets
     const double ReferencePixelRate = 2560.0 * 1440 * 60;
     const int MinBitrateKbps = 4000;
     const int MaxBitrateKbps = 300_000;
+
+    /// <summary>
+    /// Up to this many pixels a second (1080p at 170 fps) the encoders keep up with their best settings on any card that
+    /// has them; above it they stay at the chosen preset so no frame is skipped.
+    /// </summary>
+    const double BestPixelRate = 1920.0 * 1080 * 170;
 
     static (int Cq, int Kbps) Reference(QualityPreset q) => q switch
     {
@@ -61,7 +69,10 @@ public static class EncoderPresets
             VideoCodec.H264 => "obs_nvenc_h264_tex",
             _ => "obs_nvenc_av1_tex",
         };
-        return new EncoderPlan(id, "CQVBR", cq, kbps, 1, nvencPreset, 2);
+        // Ultra and High: the sharpest picture the card makes at this bitrate, when it has the time for it.
+        bool best = q is QualityPreset.Ultra or QualityPreset.High && width * (double)height * fps <= BestPixelRate;
+        string preset = best ? (q == QualityPreset.Ultra ? "p7" : "p6") : nvencPreset;
+        return new EncoderPlan(id, "CQVBR", cq, kbps, 1, preset, 2, best);
     }
 
     /// <summary>Worst-case encoded size in MiB of <paramref name="seconds"/> at the max bitrate.</summary>

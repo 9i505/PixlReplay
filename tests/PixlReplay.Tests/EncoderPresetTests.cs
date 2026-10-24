@@ -14,8 +14,14 @@ public static class EncoderPresetTests
         Assert.Equal(22, p.Cq, "cq");
         Assert.Equal(60000, p.MaxBitrateKbps, "max bitrate");
         Assert.Equal(1, p.KeyintSec, "keyint");
-        Assert.Equal("p5", p.Preset, "preset");
+        Assert.Equal("p7", p.Preset, "preset: the slowest, sharpest one while the card has room");
+        Assert.Equal(true, p.Best, "best settings");
         Assert.Equal(2, p.BFrames, "b-frames");
+        var busy = EncoderPresets.Plan(VideoCodec.Av1, QualityPreset.Ultra, 3840, 2160, 120, 22, 40, nvencAvailable: true);
+        Assert.Equal("p5", busy.Preset, "4K120 keeps the chosen preset");
+        Assert.Equal(false, busy.Best, "4K120: no best settings");
+        var balanced = EncoderPresets.Plan(VideoCodec.Av1, QualityPreset.Balanced, 1920, 1080, 60, 22, 40, nvencAvailable: true);
+        Assert.Equal("p5", balanced.Preset, "Balanced keeps the chosen preset");
     }
 
     [Test]

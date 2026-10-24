@@ -88,13 +88,14 @@ public static class SharePlannerTests
     {
         var spec = Limited20Mb;
         var size = SharePlanner.DefaultSize(spec, 30, 2560, 1440, 60, 192_000, vertical: false);
-        Assert.Equal(new SizeStep(1080, false), size, "1440p would turn to blocks in 20 MB, 1080p does not");
+        Assert.Equal(new SizeStep(720, false), size, "1440p and 1080p would go soft in 20 MB at 60 fps, 720p stays sharp");
         var plan = SharePlanner.Plan(spec, start: 270, duration: 30, srcWidth: 2560, srcHeight: 1440, srcFps: 60, audioBitrate: 192_000,
             vertical: false, cropPosition: 0.5, shortSide: size.ShortSide);
         double bytes = (plan.VideoBitrate + 192_000) * plan.Duration / 8;
         Assert.True(bytes <= 20_000_000 * 0.95, $"estimated {bytes / 1e6:F1} MB");
         Assert.True(plan.VideoBitrate > 3_000_000, $"still good quality at {plan.VideoBitrate / 1e6:F1} Mb/s");
-        Assert.Equal((1920, 1080), (plan.Width, plan.Height), "1080p");
+        Assert.Equal((1280, 720), (plan.Width, plan.Height), "720p");
+        Assert.Equal(60.0, plan.Fps, "at the full 60 fps");
     }
 
     [Test]
@@ -216,7 +217,7 @@ public static class SharePlannerTests
     public static void Seconds_that_fit_say_when_trim_is_needed()
     {
         double fit = SharePlanner.SecondsThatFit(SharePlanner.CopySpec(10), 2560, 1440, false);
-        Assert.True(fit > 100 && fit < 200, $"10 MB at 1440p: {fit:0} s");
+        Assert.True(fit > 60 && fit < 200, $"10 MB at 1440p: {fit:0} s");
         Assert.Equal(double.PositiveInfinity, SharePlanner.SecondsThatFit(SharePlanner.CopySpec(0), 2560, 1440, false), "Original");
     }
 }

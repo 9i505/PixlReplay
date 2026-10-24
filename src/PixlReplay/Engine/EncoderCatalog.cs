@@ -110,10 +110,11 @@ public static class EncoderCatalog
                 s["bitrate"] = (long)plan.MaxBitrateKbps;
                 s["preset"] = plan.Preset;
                 s["tune"] = "hq";
-                s["multipass"] = "qres";
+                // Best: a full-resolution first pass and a look ahead spend the bits where the picture needs them.
+                s["multipass"] = plan.Best ? "fullres" : "qres";
                 s["profile"] = profile;
                 s["bf"] = choice.NoBFrames ? 0L : (long)plan.BFrames;
-                s["lookahead"] = false;
+                s["lookahead"] = plan.Best && !choice.NoBFrames;
                 s["adaptive_quantization"] = true;
                 break;
             case EncoderVendor.Amd:
@@ -128,7 +129,7 @@ public static class EncoderCatalog
                 s["rate_control"] = "ICQ";
                 s["icq_quality"] = cq51;
                 s["max_bitrate"] = (long)plan.MaxBitrateKbps;
-                s["target_usage"] = "TU4";
+                s["target_usage"] = plan.Best ? "TU2" : "TU4";
                 s["profile"] = profile;
                 break;
             default:

@@ -51,7 +51,12 @@ public static class EncoderCatalogTests
         Assert.Equal("CQVBR", (string)s["rate_control"], "rc");
         Assert.Equal(22L, (long)s["target_quality"], "cq");
         Assert.Equal(60000L, (long)s["max_bitrate"], "max");
-        Assert.Equal(false, (bool)s["lookahead"], "no cuda lookahead");
+        Assert.Equal(true, (bool)s["lookahead"], "Ultra at 1440p60: the best settings, a look ahead");
+        Assert.Equal("fullres", (string)s["multipass"], "a full-resolution first pass");
+        var busy = EncoderPresets.Plan(VideoCodec.Av1, QualityPreset.Ultra, 3840, 2160, 120, 22, 40, nvencAvailable: true);
+        var fast = EncoderCatalog.Settings(busy, new EncoderChoice("obs_nvenc_av1_tex", EncoderVendor.Nvidia, VideoCodec.Av1));
+        Assert.Equal(false, (bool)fast["lookahead"], "4K120: no look ahead, so no frame is skipped");
+        Assert.Equal("qres", (string)fast["multipass"], "4K120: the quick first pass");
     }
 
     [Test]
@@ -69,7 +74,7 @@ public static class EncoderCatalogTests
         var s = EncoderCatalog.Settings(PlanFor(VideoCodec.H264), new EncoderChoice("obs_qsv11_v2", EncoderVendor.Intel, VideoCodec.H264));
         Assert.Equal("ICQ", (string)s["rate_control"], "rc");
         Assert.Equal(18L, (long)s["icq_quality"], "quality");
-        Assert.Equal("TU4", (string)s["target_usage"], "usage");
+        Assert.Equal("TU2", (string)s["target_usage"], "usage: the better quality at Ultra 1440p60");
     }
 
     [Test]

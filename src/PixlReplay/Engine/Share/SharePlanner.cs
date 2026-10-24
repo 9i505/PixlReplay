@@ -41,8 +41,11 @@ public static partial class SharePlanner
     /// <summary>Share of the size limit the estimate may use: leaves room for MP4 overhead and encoder overshoot.</summary>
     public const double SizeMargin = 0.92;
 
-    /// <summary>Below this many bits per pixel H.264 turns to blocks in fast games, so a smaller picture wins.</summary>
-    const double MinBitsPerPixel = 0.035;
+    /// <summary>
+    /// Below this many bits per pixel H.264 goes soft and blocky in fast games, so a smaller picture (or 30 fps) wins:
+    /// a clip people can read beats a big one that blurs.
+    /// </summary>
+    const double MinBitsPerPixel = 0.06;
 
     /// <summary>
     /// The biggest picture a site takes: X 5 MB, Instagram 8 MB, TikTok 50 MB a photo (its Photos tab, seen
