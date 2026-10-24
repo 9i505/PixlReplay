@@ -93,15 +93,24 @@ public static partial class SelfTest
             uint channel = 11;
             var cpu0 = Process.GetCurrentProcess().TotalProcessorTime;
             var clock = Stopwatch.StartNew();
+            var apps = new List<(string Name, ToneMeter Meter)>();
             foreach (string name in new[] { "Discord", "brave", "explorer", "Spotify", "steam" })
             {
                 if (Process.GetProcessesByName(name).FirstOrDefault() is not { } p)
                     continue;
-                sources.Add(Listen(p.Id, name, channel++, new ToneMeter(1000)));
+                var meter = new ToneMeter(1000);
+                sources.Add(Listen(p.Id, name, channel++, meter));
+                apps.Add((name, meter));
                 output.WriteLine($"opened {name} ({p.Id})");
                 p.Dispose();
             }
             Thread.Sleep(10000);
+            // What each app played meanwhile (silence when it played nothing): an app's own sound reaches its source.
+            foreach (var (name, meter) in apps)
+            {
+                var (appRate, _, appOther, _) = meter.Result();
+                output.WriteLine(FormattableString.Invariant($"{name}: {appRate:F0} frames/s, sound at {appOther:F1} dBFS"));
+            }
             double cpu = (Process.GetCurrentProcess().TotalProcessorTime - cpu0).TotalMilliseconds / clock.Elapsed.TotalMilliseconds * 100;
             output.WriteLine(FormattableString.Invariant($"cpu with {sources.Count} process captures: {cpu:F1}% of one core"));
             bool ok = rate > 46000 && rate < 50000 && level > ToneDbfs - 10 && level < ToneDbfs + 6 && level > other + 20;

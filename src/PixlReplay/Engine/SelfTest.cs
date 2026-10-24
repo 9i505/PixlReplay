@@ -491,7 +491,7 @@ public static partial class SelfTest
         int seconds = args.Length > 1 && int.TryParse(args[1], out int n) ? n : 20;
         var s = new AppSettings();
         s.Output.Folder = Path.Combine(Path.GetTempPath(), "pixlreplay-selftest");
-        bool record = false, voiceTest = false, separate = false;
+        bool record = false, voiceTest = false, separate = false, extraScreens = false;
         int relief = 0;
         double? liveVolume = null;
         string? only = null, cameraClip = null, placeApp = null;
@@ -515,6 +515,8 @@ public static partial class SelfTest
                 case "--source-audio": s.Audio.SourceAudioOnly = true; break;
                 case "--quick": s.Replay.QuickEnabled = true; s.Replay.QuickSeconds = 5; break;
                 case "--record": record = true; break;
+                // --extra: every other connected screen too (More screens), one clip each.
+                case "--extra": extraScreens = true; break;
                 case "--fresh": s.Replay.FreshAfterSave = true; break;
                 case "--replay": s.Replay.OnDisk = next == "disk"; s.Replay.DiskDrive = null; i++; break;
                 case "--disk-drive": s.Replay.DiskDrive = next; i++; break;
@@ -542,6 +544,8 @@ public static partial class SelfTest
 
         ObsHost.Start(AppContext.BaseDirectory, SettingsStore.AppDataDir, LogDir, new VideoConfig(1920, 1080, 1920, 1080, 30));
         ObsHost.LoadLater(); // the self-tests try every encoder
+        if (extraScreens)
+            s.Capture.ExtraMonitors = [.. ObsHost.Monitors().Select(m => m.Id)]; // the main one is left out by the pipeline
         if (s.Camera.Enabled)
         {
             var cameras = ObsHost.Cameras();
@@ -584,6 +588,8 @@ public static partial class SelfTest
             var saved = new List<string>();
             using var savedSignal = new SemaphoreSlim(0);
             pipeline.ReplaySaved += (path, quick, _) => { lock (saved) saved.Add((quick ? "quick " : "main ") + path); savedSignal.Release(); };
+            var screenFiles = new List<string>();
+            pipeline.ScreenSaved += (path, quick, screen) => { lock (screenFiles) screenFiles.Add($"screen {screen}{(quick ? " quick" : "")}: {path}"); };
             string? cameraFile = null;
             pipeline.CameraSaved += path => cameraFile = path;
             string? recordingPath = null;
@@ -664,6 +670,18 @@ public static partial class SelfTest
                     Audio.Mp4TrackNames.Write(path, pipeline.TrackNames); // as the engine does after a save
                     output.WriteLine($"track names: {string.Join(", ", Audio.Mp4TrackNames.Read(path))}");
                 }
+            if (extraScreens)
+            {
+                for (int waited = 0; waited < 100 && screenFiles.Count < pipeline.ExtraScreens.Count * expectedSaves; waited++)
+                    Thread.Sleep(100);
+                output.WriteLine($"extra screens recorded: {string.Join(", ", pipeline.ExtraScreens)} (main screen {pipeline.MainScreen})");
+                lock (screenFiles)
+                    foreach (string line in screenFiles)
+                    {
+                        string path = line[(line.IndexOf(": ", StringComparison.Ordinal) + 2)..];
+                        output.WriteLine($"saved {line} ({(File.Exists(path) ? new FileInfo(path).Length / 1024 : 0)} KB)");
+                    }
+            }
 
             if (s.Replay.FreshAfterSave)
             {
