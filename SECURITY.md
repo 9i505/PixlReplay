@@ -12,7 +12,7 @@ Only the latest release gets security fixes. PixlReplay updates itself from insi
 
 ## Getting PixlReplay safely
 
-- Download PixlReplay only from [the releases page](https://github.com/9i55/PixlReplay/releases).
+- Download PixlReplay only from [the releases page](https://github.com/9i505/PixlReplay/releases).
 - Each release lists the SHA-256 of its files. To check a download, run this in PowerShell and compare the result with the release page:
 
   ```powershell
@@ -38,4 +38,4 @@ PixlReplay is built on libobs (OBS Studio), FFmpeg, ONNX Runtime, whisper.cpp, V
 
 اذكر ما وجدته، وكيف يمكن تكرار المشكلة، ورقم إصدار كايروس الذي استخدمته. لا تصل الإصلاحات الأمنية إلا إلى أحدث إصدار، ويحدّث كايروس نفسه من داخل التطبيق.
 
-نزّل كايروس من [صفحة الإصدارات](https://github.com/9i55/PixlReplay/releases) فقط. تذكر كل نسخة بصمة SHA-256 لملفاتها، وتستطيع مطابقتها بالأمر `Get-FileHash .\PixlReplay-Setup.exe` في PowerShell.
+نزّل كايروس من [صفحة الإصدارات](https://github.com/9i505/PixlReplay/releases) فقط. تذكر كل نسخة بصمة SHA-256 لملفاتها، وتستطيع مطابقتها بالأمر `Get-FileHash .\PixlReplay-Setup.exe` في PowerShell.

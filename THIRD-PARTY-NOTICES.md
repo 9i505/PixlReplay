@@ -2,7 +2,7 @@
 
 Pixl Replay's own source code is licensed under the GNU General Public License, version 2 or (at your option) any later version. See [LICENSE](LICENSE).
 
-Pixl Replay is a modified version of Kairos 1.0.1 (<https://github.com/BasilForge/Kairos>, GPL-2.0-or-later). 9i55 changed it in October 2026: the name, the logo and icons, the colors, and the Look page (themes, colors, font, size and a background picture). The changes are in this repository's history.
+Pixl Replay is a modified version of Kairos 1.0.1 (<https://github.com/BasilForge/Kairos>, GPL-2.0-or-later). 9i505 (then named 9i55) changed it in October 2026: the name, the logo and icons, the colors, and the Look page (themes, colors, font, size and a background picture). The changes are in this repository's history.
 
 Release builds include the following components, copied unmodified from OBS Studio 32.2.2 (<https://github.com/obsproject/obs-studio>).
 

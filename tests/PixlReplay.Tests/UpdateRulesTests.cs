@@ -54,7 +54,7 @@ public static class UpdateRulesTests
     public static void Notes_link_only_for_github()
     {
         Assert.Equal(null, UpdateRules.NotesUrl("1.0.1", localSource: true), "a local folder has no page");
-        Assert.Equal("https://github.com/9i55/PixlReplay/releases/tag/v1.0.1", UpdateRules.NotesUrl("1.0.1", localSource: false), "GitHub");
+        Assert.Equal("https://github.com/9i505/PixlReplay/releases/tag/v1.0.1", UpdateRules.NotesUrl("1.0.1", localSource: false), "GitHub");
     }
 
     [Test]
@@ -127,7 +127,7 @@ public static class UpdateRulesTests
         var service = new UpdateService(updater, seen, localSource: false);
         service.Check(T0).GetAwaiter().GetResult();
         Assert.Equal(UpdateState.Available, service.Status!.State, "available");
-        Assert.Equal("https://github.com/9i55/PixlReplay/releases/tag/v1.0.1", service.Status.NotesUrl, "its notes");
+        Assert.Equal("https://github.com/9i505/PixlReplay/releases/tag/v1.0.1", service.Status.NotesUrl, "its notes");
         Assert.True(service.RemindDue(T0), "to tell (the engine waits for no game in front)");
         Assert.True(service.RemindDue(T0.AddMinutes(5)), "still, until it showed");
         service.Reminded(T0.AddMinutes(5));

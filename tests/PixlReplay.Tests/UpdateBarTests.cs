@@ -17,7 +17,7 @@ public static class UpdateBarTests
     [Test]
     public static void The_bar_says_what_the_update_is_doing() => LanguageTests.WithLanguage("en", () =>
     {
-        const string notes = "https://github.com/9i55/PixlReplay/releases/tag/v1.0.1";
+        const string notes = "https://github.com/9i505/PixlReplay/releases/tag/v1.0.1";
         var vm = With(new UpdateStatus("1.0.1", UpdateState.Available, 0, notes));
         Assert.True(vm.UpdateBarVisible, "shown");
         Assert.Equal("Pixl Replay 1.0.1 is available", vm.UpdateText, "available");
@@ -110,7 +110,7 @@ public static class UpdateBarTests
     [Test]
     public static void What_s_new_shows_only_with_a_link()
     {
-        Assert.True(With(new UpdateStatus("1.0.1", UpdateState.Available, 0, "https://github.com/9i55/PixlReplay/releases/tag/v1.0.1")).UpdateNotesVisible, "GitHub: a link");
+        Assert.True(With(new UpdateStatus("1.0.1", UpdateState.Available, 0, "https://github.com/9i505/PixlReplay/releases/tag/v1.0.1")).UpdateNotesVisible, "GitHub: a link");
         Assert.True(!With(new UpdateStatus("1.0.1", UpdateState.Available, 0, null)).UpdateNotesVisible, "a local folder: none");
     }
 }

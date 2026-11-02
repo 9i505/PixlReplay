@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/9i55/PixlReplay/releases/latest"><img src="https://img.shields.io/badge/Download-Windows%2010%20%7C%2011-FF5A64?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
+  <a href="https://github.com/9i505/PixlReplay/releases/latest"><img src="https://img.shields.io/badge/Download-Windows%2010%20%7C%2011-FF5A64?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows"></a>
   <img src="https://img.shields.io/badge/license-GPL--2.0-28282D?style=for-the-badge" alt="License: GPL-2.0">
 </p>
 
@@ -42,7 +42,7 @@
 
 ### التحميل
 
-1. نزّل **PixlReplay-Setup.exe** من [آخر إصدار](https://github.com/9i55/PixlReplay/releases/latest).
+1. نزّل **PixlReplay-Setup.exe** من [آخر إصدار](https://github.com/9i505/PixlReplay/releases/latest).
 2. شغّله واختر اللغة والمجلد (ما يحتاج صلاحيات مسؤول).
 3. العب، واضغط `Alt+F10` يوم يصير شي.
 
@@ -80,7 +80,7 @@
 
 ### Download
 
-1. Download **PixlReplay-Setup.exe** from the [latest release](https://github.com/9i55/PixlReplay/releases/latest).
+1. Download **PixlReplay-Setup.exe** from the [latest release](https://github.com/9i505/PixlReplay/releases/latest).
 2. Run it, pick your language and folder (no administrator rights needed).
 3. Play, then press `Alt+F10` when something happens.
 
@@ -103,4 +103,4 @@ The build copies libobs 32.2.2 from an installed OBS Studio.
 
 Pixl Replay is free software under the [GNU General Public License v2.0 or later](LICENSE). Every release includes its complete source code. Components and their licenses are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
-Made by **9i55**.
+Made by **9i505**.

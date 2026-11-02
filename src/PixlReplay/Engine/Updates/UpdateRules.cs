@@ -26,7 +26,7 @@ public sealed record UpdateLook(bool Works, bool Running, int Done, LookResult L
 /// <summary>The decisions about updates, apart from the downloading itself.</summary>
 public static class UpdateRules
 {
-    public const string Repository = "https://github.com/9i55/PixlReplay";
+    public const string Repository = "https://github.com/9i505/PixlReplay";
 
     /// <summary>The first look waits this long after the replay buffer is up, so a start-up is never slowed by it.</summary>
     public static readonly TimeSpan FirstDelay = TimeSpan.FromSeconds(60);
