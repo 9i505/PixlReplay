@@ -172,7 +172,7 @@
   "quality.high": "عالٍ",
   "quality.ultra": "فائق",
   "quality.custom": "مخصص",
-  "quality.cq": "الجودة الثابتة (القيمة الأقل أوضح)",
+  "quality.cq": "الجودة الثابتة (كلما سحبت أكثر كانت أوضح)",
   "quality.maxBitrate": "الحد الأقصى لمعدل البت",
   "quality.encoderPreset": "سرعة الترميز",
   "quality.encoderPresetTip": "الأبطأ أوضح والأسرع أخف، ولا يتأثر أداء اللعبة",

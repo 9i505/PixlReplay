@@ -103,10 +103,13 @@ public sealed class HardwareState
         ReliefAt = now;
     }
 
-    /// <summary>A week without falling behind: one step closer to what the user chose. True when it did.</summary>
+    /// <summary>
+    /// A day without falling behind: one step closer to what the user chose (a whole week at 60 fps took the frame rate
+    /// they picked away for one bad game). True when it did.
+    /// </summary>
     public bool EaseIfQuiet(DateTime now)
     {
-        (int step, DateTime? at, bool eased) = BackIfQuiet(Relief, ReliefAt, now);
+        (int step, DateTime? at, bool eased) = BackIfQuiet(Relief, ReliefAt, now, TimeSpan.FromDays(1));
         (Relief, ReliefAt) = (step, at);
         return eased;
     }
@@ -118,11 +121,11 @@ public sealed class HardwareState
         ReliefAt = null;
     }
 
-    /// <summary>One step back after a quiet week (a step without a date starts its week now).</summary>
-    static (int Step, DateTime? At, bool Eased) BackIfQuiet(int step, DateTime? at, DateTime now) =>
+    /// <summary>One step back after <paramref name="quiet"/> (a week by default; a step without a date starts it now).</summary>
+    static (int Step, DateTime? At, bool Eased) BackIfQuiet(int step, DateTime? at, DateTime now, TimeSpan? quiet = null) =>
         step == 0 ? (step, at, false)
         : at is not { } since ? (step, now, false)
-        : now - since < TimeSpan.FromDays(7) ? (step, at, false)
+        : now - since < (quiet ?? TimeSpan.FromDays(7)) ? (step, at, false)
         : (step - 1, now, true);
 
     /// <summary>

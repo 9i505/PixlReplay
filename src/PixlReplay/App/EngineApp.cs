@@ -467,8 +467,18 @@ public sealed class EngineApp : ApplicationContext
     /// <summary>"Already as light as it goes" is logged once a run.</summary>
     bool _saidBehind;
 
-    /// <summary>How long recording stays behind (<see cref="LagGuard.BehindFor"/>) before it is made lighter for the week.</summary>
+    /// <summary>How long recording stays behind (<see cref="LagGuard.BehindFor"/>) before it is made lighter for the day.</summary>
     static readonly TimeSpan SustainedBehind = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// Nearly every frame late for a minute: recording stalled (a user's PC, 2026-11-01: 99 % for one minute after hours
+    /// at 0 %, no game started), which a game sharing the card does not do (22-95 %). The first in a run is built again
+    /// as chosen; another makes it lighter.
+    /// </summary>
+    const double StallShare = 0.97;
+
+    /// <summary>A stall was already built again this run (<see cref="StallShare"/>).</summary>
+    bool _stalled;
 
     /// <summary>
     /// Each 5 s, for everyone (the user's own settings or Automatic): when over 10 % of the frames lagged or were skipped
@@ -492,6 +502,14 @@ public sealed class EngineApp : ApplicationContext
         }
         if (_lag.Add(now, frames.Bad, frames.All) is not { } share || !_lag.BehindFor(now, SustainedBehind))
             return;
+        if (share >= StallShare && !_stalled && !p.Recording && !_saveWatch.Pending)
+        {
+            _stalled = true;
+            ObsLog.Warn($"recording stalled: {share:P0} of the frames lagged or skipped for a minute: built again as chosen");
+            _lag.Reset();
+            RebuildPipeline();
+            return;
+        }
         if (p.Lightest)
         {
             if (!_saidBehind)

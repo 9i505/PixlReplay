@@ -126,13 +126,13 @@ public static class LagGuardTests
     }
 
     [Test]
-    public static void Lighter_recording_is_kept_for_the_pc_and_eased_after_a_quiet_week()
+    public static void Lighter_recording_is_kept_for_the_pc_and_eased_after_a_quiet_day()
     {
         var state = new HardwareState();
         state.Relieve(T0, 1);
         Assert.Equal(1, state.Relief, "one step lighter, kept in hardware.json");
-        Assert.True(!state.EaseIfQuiet(T0.AddDays(3)), "a few days: kept");
-        Assert.True(state.EaseIfQuiet(T0.AddDays(8)) && state.Relief == 0, "a week without falling behind: as chosen again");
+        Assert.True(!state.EaseIfQuiet(T0.AddHours(12)), "the same day: kept");
+        Assert.True(state.EaseIfQuiet(T0.AddDays(1)) && state.Relief == 0, "a day without falling behind: as chosen again");
         state.Relieve(T0, 2);
         state.ChoseVideo();
         Assert.Equal(0, state.Relief, "new video settings from the user: theirs, as chosen");

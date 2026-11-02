@@ -168,7 +168,7 @@
   "quality.high": "Высокое",
   "quality.ultra": "Ультра",
   "quality.custom": "Своё",
-  "quality.cq": "Постоянное качество (меньше — чётче)",
+  "quality.cq": "Постоянное качество (чем дальше, тем чётче)",
   "quality.maxBitrate": "Макс. битрейт",
   "quality.encoderPreset": "Скорость кодирования",
   "quality.encoderPresetTip": "Медленнее — чётче, быстрее — легче. Игры не страдают",

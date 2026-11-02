@@ -166,7 +166,7 @@
   "quality.high": "Hoch",
   "quality.ultra": "Ultra",
   "quality.custom": "Benutzerdefiniert",
-  "quality.cq": "Konstante Qualität (niedriger ist schärfer)",
+  "quality.cq": "Konstante Qualität (weiter geschoben ist schärfer)",
   "quality.maxBitrate": "Max. Bitrate",
   "quality.encoderPreset": "Encoder-Tempo",
   "quality.encoderPresetTip": "Langsam: schärfer, schnell: leichter. Spiele laufen gleich",

@@ -81,7 +81,7 @@
                         <TextBlock Style="{StaticResource Label}" Text="{l:T quality.cq}"/>
                         <TextBlock Grid.Column="1" Text="{Binding CustomCq}" FontWeight="SemiBold" FlowDirection="LeftToRight"/>
                     </Grid>
-                    <Slider Minimum="12" Maximum="45" Value="{Binding CustomCq}" IsSnapToTickEnabled="True" TickFrequency="1" Margin="0,6,0,12"
+                    <Slider Minimum="12" Maximum="45" Value="{Binding CustomCq}" IsDirectionReversed="True" IsSnapToTickEnabled="True" TickFrequency="1" Margin="0,6,0,12"
                             AutomationProperties.Name="{l:T quality.cq}"/>
                     <Grid>
                         <Grid.ColumnDefinitions>

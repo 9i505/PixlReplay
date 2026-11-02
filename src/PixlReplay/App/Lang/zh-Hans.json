@@ -164,7 +164,7 @@
   "quality.high": "高",
   "quality.ultra": "超高",
   "quality.custom": "自定义",
-  "quality.cq": "恒定画质（数值越低越清晰）",
+  "quality.cq": "恒定画质（越往后越清晰）",
   "quality.maxBitrate": "最大码率",
   "quality.encoderPreset": "编码速度",
   "quality.encoderPresetTip": "越慢越清晰，越快越省资源，不影响游戏",

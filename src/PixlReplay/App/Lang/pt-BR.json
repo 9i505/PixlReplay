@@ -166,7 +166,7 @@
   "quality.high": "Alta",
   "quality.ultra": "Ultra",
   "quality.custom": "Personalizada",
-  "quality.cq": "Qualidade constante (menor é mais nítido)",
+  "quality.cq": "Qualidade constante (quanto mais deslizar, mais nítido)",
   "quality.maxBitrate": "Bitrate máximo",
   "quality.encoderPreset": "Velocidade do codificador",
   "quality.encoderPresetTip": "Lento: mais nítido. Rápido: mais leve. O jogo não é afetado",
