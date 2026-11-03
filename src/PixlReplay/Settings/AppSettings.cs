@@ -101,7 +101,7 @@ public sealed class AppSettings
             .Take(CaptureSettings.MaxApps)];
         Capture.Window = Capture.Apps.FirstOrDefault() ?? "";
 
-        Video.Fps = Math.Clamp(Video.Fps, 10, 240);
+        Video.Fps = Math.Clamp(Video.Fps, 10, 1000);
         Video.CustomCq = Math.Clamp(Video.CustomCq, 1, 63);
         Video.CustomMbps = Math.Clamp(Video.CustomMbps, 2, 300);
         if (string.IsNullOrWhiteSpace(Video.Preset)) Video.Preset = "p5";

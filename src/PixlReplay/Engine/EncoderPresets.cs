@@ -27,6 +27,35 @@ public static class EncoderPresets
     /// </summary>
     const double BestPixelRate = 1920.0 * 1080 * 170;
 
+    /// <summary>
+    /// Above the best settings' reach, the slowest NVENC preset that still takes every frame: measured on an RTX 5080
+    /// Laptop recording a game drawing 400-1100 fps (2026-11-03): 1080p240 at p5, 1080p360 at p2, 1080p500 and 600 at p1,
+    /// 720p1000 at p1, each with no frame skipped. A slower one falls behind all at once (1080p360 at p5: 9 frames in 10
+    /// repeated, about 30 real frames a second).
+    /// </summary>
+    static readonly (double PixelRate, string Preset)[] Keeps =
+    [
+        (1920.0 * 1080 * 240, "p5"),
+        (1920.0 * 1080 * 360, "p2"),
+    ];
+
+    /// <summary>
+    /// The most pixels a second NVENC keeps up with (1080p600; 1080p1000 at p1 repeated 97 % of its frames). Above it the
+    /// frame rate is held to this (<see cref="MaxFps"/>).
+    /// </summary>
+    public const double MaxPixelRate = 1920.0 * 1080 * 600;
+
+    /// <summary>The highest frame rate NVENC keeps up with at <paramref name="width"/> x <paramref name="height"/>.</summary>
+    public static int MaxFps(int width, int height) => (int)(MaxPixelRate / ((double)width * height));
+
+    /// <summary>The user's preset, or a faster one when the pixel rate needs it (<see cref="Keeps"/>).</summary>
+    static string KeepingUp(string preset, double pixelRate)
+    {
+        string fastest = Keeps.FirstOrDefault(k => pixelRate <= k.PixelRate).Preset ?? "p1";
+        return Level(preset) > Level(fastest) ? fastest : preset;
+        static int Level(string p) => p is ['p', >= '1' and <= '7'] ? p[1] - '0' : 5;
+    }
+
     static (int Cq, int Kbps) Reference(QualityPreset q) => q switch
     {
         QualityPreset.Ultra => (22, 60000),
@@ -70,8 +99,9 @@ public static class EncoderPresets
             _ => "obs_nvenc_av1_tex",
         };
         // Ultra and High: the sharpest picture the card makes at this bitrate, when it has the time for it.
-        bool best = q is QualityPreset.Ultra or QualityPreset.High && width * (double)height * fps <= BestPixelRate;
-        string preset = best ? (q == QualityPreset.Ultra ? "p7" : "p6") : nvencPreset;
+        double pixelRate = width * (double)height * fps;
+        bool best = q is QualityPreset.Ultra or QualityPreset.High && pixelRate <= BestPixelRate;
+        string preset = best ? (q == QualityPreset.Ultra ? "p7" : "p6") : KeepingUp(nvencPreset, pixelRate);
         return new EncoderPlan(id, "CQVBR", cq, kbps, 1, preset, 2, best);
     }
 

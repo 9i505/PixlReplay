@@ -506,6 +506,7 @@ public static partial class SelfTest
                 case "--res": s.Video.Resolution = Enum.Parse<OutputResolution>(next, true); i++; break;
                 case "--fps": s.Video.Fps = int.Parse(next); i++; break;
                 case "--quality": s.Video.Quality = Enum.Parse<QualityPreset>(next, true); i++; break;
+                case "--preset": s.Video.Preset = next; i++; break;
                 case "--auto": s.Video.Auto = true; break;
                 case "--relief": relief = int.Parse(next); i++; break;
                 case "--window": s.Capture.Apps = [next]; i++; break;

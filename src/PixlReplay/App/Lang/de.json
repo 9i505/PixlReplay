@@ -685,6 +685,7 @@
   "capture.extraTip": "Jedes Speichern macht auch einen Clip jedes Bildschirms hier",
   "capture.extraNone": "Nur ein Bildschirm ist angeschlossen",
   "quality.fpsScreen": "{0} fps • Maximum deines Bildschirms",
+  "quality.fpsGames": "{0} fps • nur Spiele",
   "voice.mic": "Mikrofon",
   "voice.micAuto": "Automatisch • {0}",
   "voice.micTip": "Dein echtes Mikrofon, kein virtuelles wie VB-Cable",

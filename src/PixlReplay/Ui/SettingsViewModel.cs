@@ -441,7 +441,7 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
     void BuildTextOptions()
     {
         _diskDrives = null;
-        FpsOptions = [.. new[] { 30, 60, 90, 120, 144, 165, 240 }.Select(f => new Option(Text.Ltr($"{f} fps"), f))];
+        FpsOptions = [.. FpsSteps.Select(f => new Option(Text.Ltr($"{f} fps"), f))];
         QuickOptions = [.. new[] { 10, 15, 20, 30, 45, 60 }.Select(s => new Option(Text.Format("unit.seconds", s), s))];
         AudioBitrates = [.. new[] { 128, 160, 192, 256, 320 }.Select(b => new Option(Text.Ltr($"{b} kbps"), b))];
         FolderLimits =
@@ -836,14 +836,31 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
     public OutputResolution Resolution
     {
         get => Resolutions.Any(o => (OutputResolution)o.Value == _s.Video.Resolution) ? _s.Video.Resolution : OutputResolution.Native;
-        set => Set(() => _s.Video.Resolution = value);
+        set
+        {
+            Set(() => _s.Video.Resolution = value);
+            RebuildFpsOptions(); // a smaller picture takes more frames
+            Raise(nameof(FpsOptions), nameof(Fps));
+        }
     }
 
     /// <summary>
-    /// The frame rate as it will be recorded: the saved one, held to what the captured screen shows (the engine does the
-    /// same), so the list and the estimate say what really happens.
+    /// The frame rate as it will be recorded: the saved one, held to what the encoder keeps up with at this size (the
+    /// engine does the same), so the list and the estimate say what really happens. Above the screen's rate is kept: a
+    /// game gives those frames.
     /// </summary>
-    public int Fps { get => VideoMath.CaptureFps(_s.Video.Fps, ScreenRefresh); set => Set(() => _s.Video.Fps = value); }
+    public int Fps { get => Math.Min(_s.Video.Fps, EncoderMaxFps); set => Set(() => _s.Video.Fps = value); }
+
+    /// <summary>The most frames a second the encoder takes at the chosen size (<see cref="EncoderPresets.MaxFps"/>).</summary>
+    int EncoderMaxFps
+    {
+        get
+        {
+            var (bw, bh) = BaseSize;
+            var (w, h) = VideoMath.OutputSize(bw, bh, _s.Video.Resolution);
+            return EncoderPresets.MaxFps(w, h);
+        }
+    }
 
     /// <summary>The refresh rate the recording is held to (0 when the engine has not said yet).</summary>
     int ScreenRefresh
@@ -855,15 +872,23 @@ public sealed partial class SettingsViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>The usual frame rates up to the screen's own, and the screen's own (165 Hz is not one of the usual).</summary>
+    /// <summary>The usual frame rates up to what the encoder takes at this size, the screen's own among them (165 Hz is not
+    /// one of the usual); those above the screen's are marked for games, the only ones that give such frames.</summary>
     void RebuildFpsOptions()
     {
-        int max = ScreenRefresh;
-        var rates = new[] { 30, 60, 90, 120, 144, 165, 240 }.Where(f => max < 24 || f <= max).ToList();
-        if (max >= 24 && !rates.Contains(max))
-            rates.Add(max);
-        FpsOptions = [.. rates.Select(f => new Option(f == max ? Text.Format("quality.fpsScreen", f) : Text.Ltr($"{f} fps"), f))];
+        int screen = ScreenRefresh, most = EncoderMaxFps;
+        var rates = FpsSteps.Where(f => f <= most).ToList();
+        if (screen >= 24 && screen <= most && !rates.Contains(screen))
+            rates.Add(screen);
+        rates.Sort();
+        FpsOptions = [.. rates.Select(f => new Option(
+            screen < 24 ? Text.Ltr($"{f} fps")
+            : f == screen ? Text.Format("quality.fpsScreen", f)
+            : f > screen ? Text.Format("quality.fpsGames", f)
+            : Text.Ltr($"{f} fps"), f))];
     }
+
+    static readonly int[] FpsSteps = [30, 60, 90, 120, 144, 165, 240, 360, 500, 600, 1000];
     public QualityPreset Quality { get => _s.Video.Quality; set => Set(() => _s.Video.Quality = value); }
     public int CustomCq { get => _s.Video.CustomCq; set => Set(() => _s.Video.CustomCq = value); }
     public int CustomMbps { get => _s.Video.CustomMbps; set => Set(() => _s.Video.CustomMbps = value); }

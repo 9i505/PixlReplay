@@ -703,6 +703,7 @@
   "capture.extraTip": "كل حفظ يحفظ أيضًا مقطعًا لكل شاشة تشغّلها هنا",
   "capture.extraNone": "شاشة واحدة فقط موصولة",
   "quality.fpsScreen": "{0} fps • أقصى ما تعرضه شاشتك",
+  "quality.fpsGames": "{0} fps • للألعاب فقط",
   "voice.mic": "الميكروفون",
   "voice.micAuto": "تلقائي • {0}",
   "voice.micTip": "ميكروفونك الحقيقي، لا الافتراضي مثل VB-Cable",

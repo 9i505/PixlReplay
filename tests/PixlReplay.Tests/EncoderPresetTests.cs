@@ -18,10 +18,26 @@ public static class EncoderPresetTests
         Assert.Equal(true, p.Best, "best settings");
         Assert.Equal(2, p.BFrames, "b-frames");
         var busy = EncoderPresets.Plan(VideoCodec.Av1, QualityPreset.Ultra, 3840, 2160, 120, 22, 40, nvencAvailable: true);
-        Assert.Equal("p5", busy.Preset, "4K120 keeps the chosen preset");
+        Assert.Equal("p1", busy.Preset, "4K120 (as many pixels a second as 1080p480): the fastest preset");
         Assert.Equal(false, busy.Best, "4K120: no best settings");
         var balanced = EncoderPresets.Plan(VideoCodec.Av1, QualityPreset.Balanced, 1920, 1080, 60, 22, 40, nvencAvailable: true);
         Assert.Equal("p5", balanced.Preset, "Balanced keeps the chosen preset");
+    }
+
+    [Test]
+    public static void High_frame_rates_get_a_preset_that_keeps_up()
+    {
+        string At(int w, int h, int fps, string chosen = "p7") =>
+            EncoderPresets.Plan(VideoCodec.H264, QualityPreset.Ultra, w, h, fps, 22, 40, nvencAvailable: true, chosen).Preset;
+        Assert.Equal("p7", At(1920, 1080, 165), "1080p165: the best settings");
+        Assert.Equal("p5", At(1920, 1080, 240), "1080p240: p5 at most");
+        Assert.Equal("p3", At(1920, 1080, 240, "p3"), "a faster preset the user chose stays");
+        Assert.Equal("p2", At(1920, 1080, 360), "1080p360: p2");
+        Assert.Equal("p1", At(1920, 1080, 500), "1080p500: p1");
+        Assert.Equal("p1", At(1280, 720, 1000), "720p1000: p1");
+        Assert.Equal(600, EncoderPresets.MaxFps(1920, 1080), "1080p: 600 fps at most");
+        Assert.True(EncoderPresets.MaxFps(1280, 720) >= 1000, "720p: 1000 fps");
+        Assert.Equal(337, EncoderPresets.MaxFps(2560, 1440), "1440p: about 340");
     }
 
     [Test]

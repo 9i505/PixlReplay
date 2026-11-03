@@ -180,15 +180,11 @@ public sealed partial class CapturePipeline : IDisposable
         Fps = _video.Fps;
         if (!_s.Video.Auto)
         {
-            // More frames than the screen shows only repeat unevenly (a judder): held to the screen's rate. Automatic
-            // already picks within it.
+            // More frames than the screen shows: a game gives them (game capture takes each frame it draws, 300 and more a
+            // second in many games); the desktop only repeats its own. Kept as asked. Automatic picks within the screen's.
             int refresh = VideoMath.LimitingRefresh(monitors, monitor, _s.Capture.Mode);
-            int held = VideoMath.CaptureFps(Fps, refresh);
-            if (held < Fps)
-            {
-                ObsLog.Info($"{Fps} fps asked, the screen shows {refresh} Hz: recording at {held} fps");
-                Fps = held;
-            }
+            if (refresh >= 24 && Fps > refresh)
+                ObsLog.Info($"{Fps} fps asked, the screen shows {refresh} Hz: games give more frames, the desktop repeats its own");
         }
         if (Choice.Vendor == EncoderVendor.Software && !_s.Video.Auto)
             (Output, Fps) = EncoderCatalog.LimitForSoftware(Output, Fps);
@@ -200,6 +196,13 @@ public sealed partial class CapturePipeline : IDisposable
             (baseW, baseH) = Output;
             Base = Output;
             _gameBand = CameraMath.Bands(baseW, baseH).Game;
+        }
+        if (Choice.Vendor == EncoderVendor.Nvidia && Fps > EncoderPresets.MaxFps(Output.W, Output.H))
+        {
+            // More than NVENC takes at this size: past it nearly every frame repeats (EncoderPresets.MaxPixelRate).
+            int most = EncoderPresets.MaxFps(Output.W, Output.H);
+            ObsLog.Info($"{Fps} fps at {Output.W}x{Output.H} is more than the encoder keeps up with: recording at {most} fps");
+            Fps = most;
         }
         Auto = _s.Video.Auto ? new AutoPick(Choice.Id, Choice.Vendor == EncoderVendor.Software ? hw.Cpu : hw.CaptureGpu ?? "", Output.H, Fps, _video.Quality) : null;
         _captureDevice = hw.CaptureDevice;
